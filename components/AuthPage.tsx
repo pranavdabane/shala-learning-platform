@@ -16,7 +16,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ course, onBack, onSuccess, initialM
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot' | 'reset'>(isMaintenanceMode ? 'login' : initialMode);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
-  const [motivation, setMotivation] = useState<string>('Join Shala to unlock your potential.');
+  const [motivation, setMotivation] = useState<string>('Join us to unlock your potential.');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthSuccess, setIsAuthSuccess] = useState(false);
   const [name, setName] = useState('');
@@ -161,7 +161,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ course, onBack, onSuccess, initialM
         </div>
         <div className="space-y-2">
           <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white">Access Granted</h2>
-          <p className="text-sm md:text-base text-secondary-text font-medium">Synchronizing your cloud profile with the Shala core...</p>
+          <p className="text-sm md:text-base text-secondary-text font-medium">Synchronizing your cloud profile with the core...</p>
         </div>
         <div className="mt-8 flex gap-2">
            <div className="size-2 bg-primary rounded-full animate-pulse"></div>
@@ -186,7 +186,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ course, onBack, onSuccess, initialM
               <span className="material-symbols-outlined text-2xl md:text-3xl font-bold">{isMaintenanceMode ? 'lock' : 'school'}</span>
             </div>
             <h2 className="text-2xl md:text-3xl font-black text-white leading-tight mb-4 text-left">
-              {isMaintenanceMode ? 'Admin Portal.' : mode === 'signup' ? 'Start your journey at Online शाळा.' : mode === 'forgot' ? 'Recover your शाळा account.' : mode === 'reset' ? 'Finalize new security key.' : 'Welcome back to शाळा.'}
+              {isMaintenanceMode ? 'Admin Portal.' : mode === 'signup' ? 'Start your journey here.' : mode === 'forgot' ? 'Recover your account.' : mode === 'reset' ? 'Finalize new security key.' : 'Welcome back.'}
             </h2>
             <div className={`p-4 rounded-2xl backdrop-blur-sm border text-left ${isMaintenanceMode ? 'bg-red-500/10 border-red-500/20' : 'bg-primary/10 border-neon-border'}`}>
               <p className={`${isMaintenanceMode ? 'text-red-400' : 'text-primary'} text-xs md:text-sm font-medium italic leading-relaxed`}>"{motivation}"</p>
@@ -295,7 +295,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ course, onBack, onSuccess, initialM
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
                   className="w-full bg-background-main border border-neon-border rounded-2xl px-5 py-4 text-sm focus:ring-2 focus:ring-primary text-white outline-none" 
-                  placeholder="email@shala.edu" 
+                  placeholder="email@platform.edu" 
                 />
               </div>
             )}

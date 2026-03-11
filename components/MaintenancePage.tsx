@@ -52,15 +52,8 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ onAdminAuth, endTime 
       <div className="relative z-10 max-w-3xl w-full text-center space-y-12 animate-in fade-in zoom-in-95 duration-1000">
         <div className="flex justify-center">
           <div className="relative">
-            <div className="size-24 bg-transparent rounded-[32px] flex items-center justify-center overflow-hidden shadow-2xl">
-              <img 
-                src="https://i.ibb.co/vY6pP2N/logo.png" 
-                alt="Shala Logo" 
-                className="h-full w-full object-contain filter invert-[1] brightness-[1.2] contrast-[1.2] sepia-[1] saturate-[10] hue-rotate-[25deg] drop-shadow-[0_0_8px_rgba(230,255,0,0.5)]"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "https://lh3.googleusercontent.com/aida-public/AB6AXuDiAlEG1u2oD4veMA6KReqiK8KyL6dRFVRuvjZpTYs8frCMyYDwvCBHESnpNR4gwXfFruyaiJ1N3DTaQJ8S6j9ui9r_-qHflL-iBseKFyeqSIrxledClSUlXRzyGEFk3yt0p2X-TH0h4TAwFdgL8A9mxTPWWOscI7XpeQy-hi6RwNo5ayL_xxDstPGKk9EVJYYo6jfDIf9EkThAd5_GzQXbMHTp-ibAWxvScE_vEtW7oAKTOIfqZ2jmWi3Brfi-lMLx_ASnZPCt_h07";
-                }}
-              />
+            <div className="size-24 bg-primary rounded-[32px] flex items-center justify-center text-background-dark shadow-2xl shadow-primary/20 animate-pulse">
+              <span className="material-symbols-outlined text-5xl font-black">settings_suggest</span>
             </div>
             <div className="absolute -bottom-2 -right-2 size-10 bg-white rounded-full flex items-center justify-center text-background-dark border-4 border-background-dark">
               <span className="material-symbols-outlined text-sm font-black animate-spin [animation-duration:3s]">autorenew</span>
@@ -73,7 +66,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ onAdminAuth, endTime 
             System Optimization in Progress
           </div>
           <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-none">
-            Shala is <br />
+            The platform is <br />
             <span className="text-primary italic">evolving.</span>
           </h1>
           <p className="text-slate-400 text-lg md:text-xl font-medium max-w-lg mx-auto leading-relaxed">
@@ -132,7 +125,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ onAdminAuth, endTime 
       </div>
 
       <footer className="absolute bottom-10 text-[10px] font-black uppercase tracking-widest text-slate-600">
-        © 2025 Shala Learning Platform Inc.
+        © 2025 Learning Platform Inc.
       </footer>
     </div>
   );

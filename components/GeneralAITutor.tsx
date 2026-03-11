@@ -43,7 +43,7 @@ const GeneralAITutor: React.FC<GeneralAITutorProps> = ({ onBack }) => {
         }]);
       }
     } catch (e) {
-      setChatLog(prev => [...prev, { role: 'ai', text: 'Error connecting to the Shala AI core.' }]);
+      setChatLog(prev => [...prev, { role: 'ai', text: 'Error connecting to the AI core.' }]);
     } finally {
       setIsTyping(false);
     }
@@ -57,7 +57,7 @@ const GeneralAITutor: React.FC<GeneralAITutorProps> = ({ onBack }) => {
             <span className="material-symbols-outlined text-2xl md:text-3xl font-black">psychology</span>
           </div>
           <div className="text-left">
-            <h2 className="text-lg md:text-xl font-black tracking-tight">Shala Global Tutor</h2>
+            <h2 className="text-lg md:text-xl font-black tracking-tight">Global AI Tutor</h2>
             <p className="text-[8px] md:text-[10px] text-primary uppercase font-bold tracking-[0.2em]">General Career & Mastery Assistant</p>
           </div>
         </div>

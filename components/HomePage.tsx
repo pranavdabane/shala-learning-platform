@@ -68,7 +68,7 @@ const HomePage: React.FC<HomePageProps> = ({
   
   // Challenge State - Ensures a new random question on every refresh that is different from the last one shown
   const [currentChallengeIndex] = useState(() => {
-    const lastIndexStr = localStorage.getItem('shala_last_challenge_index');
+    const lastIndexStr = localStorage.getItem('lms_last_challenge_index');
     const lastIndex = lastIndexStr !== null ? parseInt(lastIndexStr, 10) : -1;
     
     let newIndex = Math.floor(Math.random() * DAILY_CHALLENGES.length);
@@ -80,7 +80,7 @@ const HomePage: React.FC<HomePageProps> = ({
       }
     }
     
-    localStorage.setItem('shala_last_challenge_index', newIndex.toString());
+    localStorage.setItem('lms_last_challenge_index', newIndex.toString());
     return newIndex;
   });
 
@@ -95,9 +95,9 @@ const HomePage: React.FC<HomePageProps> = ({
   }, [courses]);
 
   const [userReviews, setUserReviews] = useState([
-    { name: "Sarah Jenkins", role: "Data Analyst at Spotify", img: "https://i.pravatar.cc/150?u=a", text: "Shala transformed my career path. The Data Science course was intense but the AI Tutor helped me clear concepts that I struggled with for months elsewhere.", isNew: false },
+    { name: "Sarah Jenkins", role: "Data Analyst at Spotify", img: "https://i.pravatar.cc/150?u=a", text: "This platform transformed my career path. The Data Science course was intense but the AI Tutor helped me clear concepts that I struggled with for months elsewhere.", isNew: false },
     { name: "Marcus Chen", role: "Senior Product Designer", img: "https://i.pravatar.cc/150?u=b", text: "The UI/UX program is world-class. Building design systems for real clients during the course gave me the portfolio I needed to land my dream job at Apple.", dark: true, isNew: false },
-    { name: "Elena Rodriguez", role: "Marketing Manager", img: "https://i.pravatar.cc/150?u=c", text: "Incredible support and quality content. Shala isn't just a platform; it's a community that pushes you to be your best self every single day.", isNew: false }
+    { name: "Elena Rodriguez", role: "Marketing Manager", img: "https://i.pravatar.cc/150?u=c", text: "Incredible support and quality content. This isn't just a platform; it's a community that pushes you to be your best self every single day.", isNew: false }
   ]);
 
   const handleReviewClick = () => {
@@ -291,7 +291,7 @@ const HomePage: React.FC<HomePageProps> = ({
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <div className="space-y-1 md:space-y-2">
             <h2 className="text-3xl md:text-4xl font-black text-white">Voices of Success</h2>
-            <p className="text-xs md:text-sm text-secondary-text font-medium">Genuine feedback from Shala graduates.</p>
+            <p className="text-xs md:text-sm text-secondary-text font-medium">Genuine feedback from our graduates.</p>
           </div>
           <button onClick={handleReviewClick} className="w-full md:w-auto flex items-center justify-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-primary text-black border-2 border-primary rounded-2xl md:rounded-3xl font-black hover:shadow-[0_0_20px_rgba(230,255,0,0.4)] transition-all shadow-xl shadow-primary/10 text-xs md:text-sm">
             <span className="material-symbols-outlined text-lg md:text-xl">rate_review</span> ADD YOUR REVIEW
@@ -317,7 +317,7 @@ const HomePage: React.FC<HomePageProps> = ({
         <div className="absolute top-0 right-0 p-10 opacity-10 hidden md:block"><span className="material-symbols-outlined text-[200px] font-black text-black">celebration</span></div>
         <h2 className="text-3xl md:text-7xl font-black text-black leading-none tracking-tighter">Ready to start <br />your journey?</h2>
         <p className="text-black/70 font-bold text-base md:text-xl max-w-xl mx-auto uppercase tracking-wide">Unlock 500+ premium industry certifications.</p>
-        <button onClick={onBrowse} className="w-full sm:w-auto px-10 md:px-14 py-5 md:py-6 bg-black text-white font-black rounded-2xl md:rounded-3xl hover:scale-110 active:scale-95 transition-all shadow-2xl text-base md:text-lg tracking-widest">JOIN ONLINE शाळा TODAY</button>
+        <button onClick={onBrowse} className="w-full sm:w-auto px-10 md:px-14 py-5 md:py-6 bg-black text-white font-black rounded-2xl md:rounded-3xl hover:scale-110 active:scale-95 transition-all shadow-2xl text-base md:text-lg tracking-widest">JOIN US TODAY</button>
       </section>
     </div>
   );

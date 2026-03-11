@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import Logo from './Logo';
 
 interface SidebarProps {
   onNavigate: (view: 'home' | 'catalog' | 'wishlist' | 'mylearning' | 'cart' | 'career-paths' | 'settings' | 'admin') => void;
@@ -26,7 +25,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentView, onLogout, is
 
       <aside className={`fixed inset-y-0 left-0 z-[110] w-72 lg:w-72 transform bg-background-main p-6 transition-all duration-500 ease-out lg:static lg:translate-x-0 flex flex-col gap-8 border-r border-neon-border h-full overflow-y-auto no-scrollbar ${isOpen ? 'translate-x-0 shadow-2xl shadow-primary/10' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between mb-2">
-          <Logo isAdmin={isAdmin} />
+          <div className="flex items-center gap-3 text-white">
+            <div className={`size-10 flex items-center justify-center rounded-xl text-black shrink-0 shadow-lg ${isAdmin ? 'bg-red-500 shadow-red-500/20' : 'bg-primary shadow-[0_0_15px_rgba(230,255,0,0.4)]'}`}>
+              <span className="material-symbols-outlined text-2xl font-bold">{isAdmin ? 'admin_panel_settings' : 'school'}</span>
+            </div>
+            <h2 className="text-2xl font-black tracking-tighter font-display">Learning</h2>
+          </div>
           <button onClick={onClose} className="size-10 flex items-center justify-center rounded-xl hover:bg-card lg:hidden transition-all active:scale-90">
             <span className="material-symbols-outlined text-white">close</span>
           </button>

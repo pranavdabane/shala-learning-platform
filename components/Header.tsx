@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import ProfileDropdown from './ProfileDropdown';
-import Logo from './Logo';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
@@ -58,10 +57,24 @@ const Header: React.FC<HeaderProps> = ({
         </button>
 
         <div 
-          className="cursor-pointer"
+          className="flex items-center gap-2 lg:gap-4 text-white cursor-pointer group"
           onClick={() => onNavigate('home')}
         >
-          <Logo isAdmin={isAdmin} />
+          <motion.div 
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className={`size-9 lg:size-11 flex items-center justify-center rounded-xl text-black transition-transform ${isAdmin ? 'bg-red-500' : 'bg-primary shadow-[0_0_15px_rgba(230,255,0,0.4)]'}`}
+          >
+            <span className="material-symbols-outlined text-xl lg:text-3xl font-black">{isAdmin ? 'admin_panel_settings' : 'school'}</span>
+          </motion.div>
+          <h2 className="text-lg lg:text-2xl font-black tracking-tighter flex items-center gap-2">
+            <span className="hidden xs:inline">Learning</span>
+            {isAdmin && (
+              <span className="bg-red-500 text-white text-[10px] lg:text-xs px-2 py-1 rounded-lg font-black uppercase tracking-tighter">
+                Admin
+              </span>
+            )}
+          </h2>
         </div>
         <nav className="hidden md:flex items-center gap-8">
           <button 

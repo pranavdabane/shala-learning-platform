@@ -141,7 +141,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ course, currentProgress, on
                   {takeaways}
                 </div>
               ) : (
-                <p className="text-[10px] md:text-xs text-secondary-text italic text-center leading-relaxed">Click the spark to generate key lesson insights using Shala AI.</p>
+                <p className="text-[10px] md:text-xs text-secondary-text italic text-center leading-relaxed">Click the spark to generate key lesson insights using AI.</p>
               )}
             </div>
           </div>

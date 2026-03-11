@@ -95,7 +95,7 @@ export async function getSignUpMotivation(course: Course) {
   const prompt = `Course Category: ${course.category}
   Course Title: ${course.title}
   
-  Generate a very short, high-energy welcome message (max 15 words) for a new user about to sign up to Shala. Mention how this platform is the best place for ${course.category}.`;
+  Generate a very short, high-energy welcome message (max 15 words) for a new user about to sign up to our platform. Mention how this platform is the best place for ${course.category}.`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
@@ -110,7 +110,7 @@ export async function chatWithTutor(course: Course, message: string, history: an
   const chat = ai.chats.create({
     model: 'gemini-3-flash-preview',
     config: {
-      systemInstruction: `You are the Shala AI Tutor for the course "${course.title}". 
+      systemInstruction: `You are the AI Tutor for the course "${course.title}". 
       You have deep expertise in ${course.category}. Your goal is to provide specific, 
       expert-level knowledge to students. Be encouraging, technical, and concise.`,
     },
@@ -125,7 +125,7 @@ export async function globalChat(message: string) {
   const chat = ai.chats.create({
     model: 'gemini-3-flash-preview',
     config: {
-      systemInstruction: `You are the Shala Global AI Assistant. Shala is a world-class professional learning platform. 
+      systemInstruction: `You are the Global AI Assistant. This is a world-class professional learning platform. 
       You help users with career advice, learning strategies, and technical questions. 
       Be encouraging, professional, and helpful. You can suggest topics like Web Dev, Data Science, and UI/UX.`,
     },
@@ -142,7 +142,7 @@ export async function getIndustryBrief(topic: string) {
   Include: 
   - Current state of the industry (2025 context)
   - 3 critical skills to master
-  - A short 'Shala Perspective' on why this matters for career growth. 
+  - A short 'Expert Perspective' on why this matters for career growth. 
   Keep it under 200 words.`;
 
   const response = await ai.models.generateContent({

@@ -135,7 +135,7 @@ const EnrollmentPage: React.FC<EnrollmentPageProps> = ({ courses, user, onBack, 
         </div>
         <div className="space-y-2 text-center">
           <h2 className="text-4xl font-black text-white">Enrollment Successful!</h2>
-          <p className="text-secondary-text">You've unlocked <strong>{courses.length}</strong> new tracks on Shala.</p>
+          <p className="text-secondary-text">You've unlocked <strong>{courses.length}</strong> new tracks on the platform.</p>
         </div>
         <p className="text-sm text-primary font-bold animate-pulse">Syncing your learning environment...</p>
       </div>
@@ -178,7 +178,7 @@ const EnrollmentPage: React.FC<EnrollmentPageProps> = ({ courses, user, onBack, 
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-secondary-text tracking-widest">Email</label>
-                  <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={`w-full bg-background-main border-2 rounded-xl text-sm p-3 focus:ring-0 text-white ${errors.email ? 'border-red-500' : 'border-neon-border focus:border-primary'}`} placeholder="jane@shala.edu" />
+                  <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={`w-full bg-background-main border-2 rounded-xl text-sm p-3 focus:ring-0 text-white ${errors.email ? 'border-red-500' : 'border-neon-border focus:border-primary'}`} placeholder="jane@platform.edu" />
                 </div>
               </div>
             </div>

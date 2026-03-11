@@ -226,7 +226,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
 
           <div className="flex-1 overflow-y-auto space-y-6 pr-2 no-scrollbar mb-8 relative z-10">
             <div className="bg-card backdrop-blur-md p-6 rounded-[32px] rounded-tl-none text-sm md:text-base leading-relaxed border border-neon-border text-secondary-text">
-              Hi! I'm your Shala AI Tutor. Ask me anything about this course's specific concepts, career paths, or real-world applications.
+              Hi! I'm your AI Tutor. Ask me anything about this course's specific concepts, career paths, or real-world applications.
             </div>
             {chatLog.map((msg, i) => (
               <div 

@@ -15,7 +15,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isOpen, onClose, enro
   if (!isOpen) return null;
 
   const displayName = user?.name || "Guest User";
-  const displayEmail = user?.email || "not-logged-in@shala.edu";
+  const displayEmail = user?.email || "not-logged-in@platform.edu";
 
   return (
     <>

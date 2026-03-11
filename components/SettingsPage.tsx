@@ -20,24 +20,24 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
     if (user?.email) setEmail(user.email);
   }, [user]);
 
-  const [bio, setBio] = useState(() => localStorage.getItem('shala_settings_bio') || 'Senior Product Designer exploring the intersection of AI and Human Psychology.');
-  const [timezone, setTimezone] = useState(() => localStorage.getItem('shala_settings_timezone') || 'GMT-05:00 (EST)');
+  const [bio, setBio] = useState(() => localStorage.getItem('lms_settings_bio') || 'Senior Product Designer exploring the intersection of AI and Human Psychology.');
+  const [timezone, setTimezone] = useState(() => localStorage.getItem('lms_settings_timezone') || 'GMT-05:00 (EST)');
   
-  const [fontSize, setFontSize] = useState<'Small' | 'Medium' | 'Large'>(() => (localStorage.getItem('shala_settings_fontSize') as any) || 'Medium');
-  const [reducedMotion, setReducedMotion] = useState(() => localStorage.getItem('shala_settings_reducedMotion') === 'true');
+  const [fontSize, setFontSize] = useState<'Small' | 'Medium' | 'Large'>(() => (localStorage.getItem('lms_settings_fontSize') as any) || 'Medium');
+  const [reducedMotion, setReducedMotion] = useState(() => localStorage.getItem('lms_settings_reducedMotion') === 'true');
   
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [saveError, setSaveError] = useState('');
 
   // Notification States
-  const [notifProgress, setNotifProgress] = useState(() => JSON.parse(localStorage.getItem('shala_settings_notifProgress') || '{"email": true, "push": true}'));
-  const [notifMarketing, setNotifMarketing] = useState(() => JSON.parse(localStorage.getItem('shala_settings_notifMarketing') || '{"email": false, "push": false}'));
-  const [notifSecurity, setNotifSecurity] = useState(() => JSON.parse(localStorage.getItem('shala_settings_notifSecurity') || '{"email": true, "push": true}'));
-  const [digestFrequency, setDigestFrequency] = useState(() => localStorage.getItem('shala_settings_digestFrequency') || 'Daily');
+  const [notifProgress, setNotifProgress] = useState(() => JSON.parse(localStorage.getItem('lms_settings_notifProgress') || '{"email": true, "push": true}'));
+  const [notifMarketing, setNotifMarketing] = useState(() => JSON.parse(localStorage.getItem('lms_settings_notifMarketing') || '{"email": false, "push": false}'));
+  const [notifSecurity, setNotifSecurity] = useState(() => JSON.parse(localStorage.getItem('lms_settings_notifSecurity') || '{"email": true, "push": true}'));
+  const [digestFrequency, setDigestFrequency] = useState(() => localStorage.getItem('lms_settings_digestFrequency') || 'Daily');
 
   // Security States
-  const [twoFactor, setTwoFactor] = useState(() => localStorage.getItem('shala_settings_twoFactor') === 'true');
-  const [authType, setAuthType] = useState<'app' | 'sms'>(() => (localStorage.getItem('shala_settings_authType') as any) || 'app');
+  const [twoFactor, setTwoFactor] = useState(() => localStorage.getItem('lms_settings_twoFactor') === 'true');
+  const [authType, setAuthType] = useState<'app' | 'sms'>(() => (localStorage.getItem('lms_settings_authType') as any) || 'app');
 
   // Password Update States
   const [currentPassword, setCurrentPassword] = useState('');
@@ -46,27 +46,27 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
   const [passwordError, setPasswordError] = useState('');
 
   // Privacy States
-  const [publicProfile, setPublicProfile] = useState(() => localStorage.getItem('shala_settings_publicProfile') !== 'false');
-  const [showProgress, setShowProgress] = useState(() => localStorage.getItem('shala_settings_showProgress') !== 'false');
-  const [anonymizedAnalytics, setAnonymizedAnalytics] = useState(() => localStorage.getItem('shala_settings_anonymizedAnalytics') !== 'false');
-  const [profileIndexing, setProfileIndexing] = useState(() => localStorage.getItem('shala_settings_profileIndexing') === 'true');
+  const [publicProfile, setPublicProfile] = useState(() => localStorage.getItem('lms_settings_publicProfile') !== 'false');
+  const [showProgress, setShowProgress] = useState(() => localStorage.getItem('lms_settings_showProgress') !== 'false');
+  const [anonymizedAnalytics, setAnonymizedAnalytics] = useState(() => localStorage.getItem('lms_settings_anonymizedAnalytics') !== 'false');
+  const [profileIndexing, setProfileIndexing] = useState(() => localStorage.getItem('lms_settings_profileIndexing') === 'true');
 
   // Persistence Effects
   useEffect(() => {
-    localStorage.setItem('shala_settings_bio', bio);
-    localStorage.setItem('shala_settings_timezone', timezone);
-    localStorage.setItem('shala_settings_fontSize', fontSize);
-    localStorage.setItem('shala_settings_reducedMotion', reducedMotion.toString());
-    localStorage.setItem('shala_settings_notifProgress', JSON.stringify(notifProgress));
-    localStorage.setItem('shala_settings_notifMarketing', JSON.stringify(notifMarketing));
-    localStorage.setItem('shala_settings_notifSecurity', JSON.stringify(notifSecurity));
-    localStorage.setItem('shala_settings_digestFrequency', digestFrequency);
-    localStorage.setItem('shala_settings_twoFactor', twoFactor.toString());
-    localStorage.setItem('shala_settings_authType', authType);
-    localStorage.setItem('shala_settings_publicProfile', publicProfile.toString());
-    localStorage.setItem('shala_settings_showProgress', showProgress.toString());
-    localStorage.setItem('shala_settings_anonymizedAnalytics', anonymizedAnalytics.toString());
-    localStorage.setItem('shala_settings_profileIndexing', profileIndexing.toString());
+    localStorage.setItem('lms_settings_bio', bio);
+    localStorage.setItem('lms_settings_timezone', timezone);
+    localStorage.setItem('lms_settings_fontSize', fontSize);
+    localStorage.setItem('lms_settings_reducedMotion', reducedMotion.toString());
+    localStorage.setItem('lms_settings_notifProgress', JSON.stringify(notifProgress));
+    localStorage.setItem('lms_settings_notifMarketing', JSON.stringify(notifMarketing));
+    localStorage.setItem('lms_settings_notifSecurity', JSON.stringify(notifSecurity));
+    localStorage.setItem('lms_settings_digestFrequency', digestFrequency);
+    localStorage.setItem('lms_settings_twoFactor', twoFactor.toString());
+    localStorage.setItem('lms_settings_authType', authType);
+    localStorage.setItem('lms_settings_publicProfile', publicProfile.toString());
+    localStorage.setItem('lms_settings_showProgress', showProgress.toString());
+    localStorage.setItem('lms_settings_anonymizedAnalytics', anonymizedAnalytics.toString());
+    localStorage.setItem('lms_settings_profileIndexing', profileIndexing.toString());
   }, [bio, timezone, fontSize, reducedMotion, notifProgress, notifMarketing, notifSecurity, digestFrequency, twoFactor, authType, publicProfile, showProgress, anonymizedAnalytics, profileIndexing]);
 
   // Appearance Side Effects
@@ -433,7 +433,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
           { label: 'Public Profile', desc: 'Allows others to view your earned badges and bio.', state: publicProfile, setter: setPublicProfile },
           { label: 'Show Progress', desc: 'Share your current courses and progress %.', state: showProgress, setter: setShowProgress },
           { label: 'Search Indexing', desc: 'Allow your profile to appear in external search engines.', state: profileIndexing, setter: setProfileIndexing },
-          { label: 'Anonymous Analytics', desc: 'Help us improve Shala with anonymized usage data.', state: anonymizedAnalytics, setter: setAnonymizedAnalytics }
+          { label: 'Anonymous Analytics', desc: 'Help us improve the platform with anonymized usage data.', state: anonymizedAnalytics, setter: setAnonymizedAnalytics }
         ].map((item, i) => (
           <div key={i} className="flex items-center justify-between p-4 bg-background-main/50 rounded-2xl border border-neon-border">
             <div className="space-y-1">
@@ -466,7 +466,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;
-              a.download = 'shala-settings-export.json';
+              a.download = 'lms-settings-export.json';
               a.click();
               URL.revokeObjectURL(url);
             }}

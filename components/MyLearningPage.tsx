@@ -117,7 +117,7 @@ const CertificateModal: React.FC<{
                       <div className="size-10 md:size-14 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg">
                         <span className="material-symbols-outlined font-black text-xl md:text-3xl text-black">school</span>
                       </div>
-                      <h2 className="text-2xl md:text-4xl font-black tracking-tighter font-display">SHALA</h2>
+                      <h2 className="text-2xl md:text-4xl font-black tracking-tighter font-display">LEARNING</h2>
                     </div>
                     <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.5em] text-slate-400">Professional Certification Authority</p>
                   </div>
@@ -160,7 +160,7 @@ const CertificateModal: React.FC<{
                        <div className="space-y-2">
                          <p className="text-xl md:text-3xl italic font-serif text-slate-800">Pranav Dabane</p>
                          <div className="h-0.5 w-40 md:w-64 bg-slate-200 ml-auto"></div>
-                         <p className="text-[10px] md:text-xs font-bold uppercase text-slate-400 tracking-widest">Director of Education, Shala</p>
+                         <p className="text-[10px] md:text-xs font-bold uppercase text-slate-400 tracking-widest">Director of Education</p>
                        </div>
                     </div>
                   </div>
@@ -279,7 +279,7 @@ const MyLearningPage: React.FC<MyLearningPageProps> = ({
           onClose={() => setSelectedCert(null)} 
           course={selectedCert} 
           userName={userName || 'Learner'}
-          userEmail={userEmail || 'learner@shala.edu'}
+          userEmail={userEmail || 'learner@platform.edu'}
         />
       )}
 

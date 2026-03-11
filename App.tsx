@@ -54,10 +54,10 @@ const DEFAULT_LEGAL: LegalContent = {
     title: "Terms of Service",
     updated: "Last Updated: May 20, 2025",
     sections: [
-      { h: "1. Acceptance of Terms", p: "By accessing or using the Shala platform, you agree to be bound by these Terms of Service. If you do not agree to all of these terms, do not use our services." },
-      { h: "2. Learning Content", p: "All courses provided on Shala are for educational purposes. We strive for accuracy but do not guarantee specific career outcomes or employment results from completing courses." },
+      { h: "1. Acceptance of Terms", p: "By accessing or using the platform, you agree to be bound by these Terms of Service. If you do not agree to all of these terms, do not use our services." },
+      { h: "2. Learning Content", p: "All courses provided on this platform are for educational purposes. We strive for accuracy but do not guarantee specific career outcomes or employment results from completing courses." },
       { h: "3. Payments and Refunds", p: "Enrollment fees are processed securely. Refund requests must be submitted within 30 days of purchase and are subject to course progress validation (less than 20% completion)." },
-      { h: "4. Intellectual Property", p: "All course materials, including videos, documents, and AI-generated insights, are the exclusive property of Shala and its instructors. Unauthorized redistribution is prohibited." }
+      { h: "4. Intellectual Property", p: "All course materials, including videos, documents, and AI-generated insights, are the exclusive property of the platform and its instructors. Unauthorized redistribution is prohibited." }
     ]
   },
   privacy: {
@@ -268,7 +268,7 @@ const App: React.FC = () => {
   }, []);
 
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>(() => {
-    const saved = localStorage.getItem('shala_platform_settings');
+    const saved = localStorage.getItem('lms_platform_settings');
     return saved ? JSON.parse(saved) : {
       maintenanceMode: false,
       maintenanceEndTime: undefined,
@@ -281,25 +281,25 @@ const App: React.FC = () => {
   });
 
   const [legalContent, setLegalContent] = useState<LegalContent>(() => {
-    const saved = localStorage.getItem('shala_legal_content');
+    const saved = localStorage.getItem('lms_legal_content');
     return saved ? JSON.parse(saved) : DEFAULT_LEGAL;
   });
 
   const [allCourses, setAllCourses] = useState<Course[]>(() => {
-    const local = localStorage.getItem('shala_all_courses');
+    const local = localStorage.getItem('lms_all_courses');
     return local ? JSON.parse(local) : COURSES;
   });
 
   useEffect(() => {
-    localStorage.setItem('shala_all_courses', JSON.stringify(allCourses));
+    localStorage.setItem('lms_all_courses', JSON.stringify(allCourses));
   }, [allCourses]);
 
   useEffect(() => {
-    localStorage.setItem('shala_platform_settings', JSON.stringify(platformSettings));
+    localStorage.setItem('lms_platform_settings', JSON.stringify(platformSettings));
   }, [platformSettings]);
 
   useEffect(() => {
-    localStorage.setItem('shala_legal_content', JSON.stringify(legalContent));
+    localStorage.setItem('lms_legal_content', JSON.stringify(legalContent));
   }, [legalContent]);
 
   useEffect(() => {
@@ -442,7 +442,7 @@ const App: React.FC = () => {
     setIsAdmin(adminStatus);
     setIsAuthing(false);
     
-    const welcomeMsg = isNewUser ? `Welcome to Shala, ${name}!` : `Welcome back, ${name}!`;
+    const welcomeMsg = isNewUser ? `Welcome to our platform, ${name}!` : `Welcome back, ${name}!`;
 
     // Sync registration activity if new user
     if (isNewUser) {
@@ -1046,17 +1046,10 @@ const App: React.FC = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20 text-left">
           <div className="space-y-8">
             <div className="flex items-center gap-4 text-white">
-              <div className="size-14 lg:size-16 flex items-center justify-center bg-transparent rounded-2xl overflow-hidden transition-transform">
-                <img 
-                  src="https://i.ibb.co/vY6pP2N/logo.png" 
-                  alt="Shala Logo" 
-                  className="h-full w-full object-contain filter invert-[1] brightness-[1.2] contrast-[1.2] sepia-[1] saturate-[10] hue-rotate-[25deg] drop-shadow-[0_0_8px_rgba(230,255,0,0.5)]"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://lh3.googleusercontent.com/aida-public/AB6AXuDiAlEG1u2oD4veMA6KReqiK8KyL6dRFVRuvjZpTYs8frCMyYDwvCBHESnpNR4gwXfFruyaiJ1N3DTaQJ8S6j9ui9r_-qHflL-iBseKFyeqSIrxledClSUlXRzyGEFk3yt0p2X-TH0h4TAwFdgL8A9mxTPWWOscI7XpeQy-hi6RwNo5ayL_xxDstPGKk9EVJYYo6jfDIf9EkThAd5_GzQXbMHTp-ibAWxvScE_vEtW7oAKTOIfqZ2jmWi3Brfi-lMLx_ASnZPCt_h07";
-                  }}
-                />
+              <div className="size-12 flex items-center justify-center bg-primary rounded-2xl text-black shadow-[0_0_15px_rgba(230,255,0,0.4)]">
+                <span className="material-symbols-outlined text-3xl font-black">school</span>
               </div>
-              <h2 className="text-3xl font-black tracking-tighter cursor-pointer" onClick={() => handleNavigate('home')}>Shala</h2>
+              <h2 className="text-3xl font-black tracking-tighter cursor-pointer" onClick={() => handleNavigate('home')}>Learning</h2>
             </div>
             <p className="text-sm text-secondary-text leading-relaxed font-medium">
               Empowering professional growth via cloud-native, AI-integrated certification programs since 2018.
@@ -1088,7 +1081,7 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="max-w-7xl mx-auto pt-10 border-t border-neon-border text-center flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-[10px] font-black uppercase tracking-widest text-secondary-text">© 2025 Shala Learning Platform Inc. Cloud Architecture.</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-secondary-text">© 2025 Learning Platform Inc. Cloud Architecture.</p>
           <div className="flex gap-8">
             <button onClick={() => setLegalType('terms')} className="text-[10px] font-black uppercase tracking-widest text-secondary-text hover:text-primary transition-colors">Terms</button>
             <button onClick={() => setLegalType('privacy')} className="text-[10px] font-black uppercase tracking-widest text-secondary-text hover:text-primary transition-colors">Privacy</button>
