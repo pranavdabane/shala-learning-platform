@@ -40,6 +40,7 @@ interface UserReview {
   rating: number;
   created_at: string;
   user_id?: string;
+  course_id?: string;
 }
 
 interface PlatformEnrollment {
@@ -137,7 +138,34 @@ const AdminPage: React.FC<AdminPageProps> = ({
       setChatMessages(chatRes.data || []);
       
       if (cRes.data && cRes.data.length > 0) {
-        setCourses(cRes.data as Course[]);
+        const allCourses = cRes.data as Course[];
+        const allReviews = rRes.data as UserReview[];
+        
+        // Recalculate ratings and identify which ones need database updates
+        const updatedCourses = allCourses.map(course => {
+          const courseReviews = allReviews.filter(r => r.course_id === course.id);
+          if (courseReviews.length > 0) {
+            const totalRating = courseReviews.reduce((sum, r) => sum + r.rating, 0);
+            const avgRating = parseFloat((totalRating / courseReviews.length).toFixed(1));
+            const reviewCount = courseReviews.length;
+            const reviewsStr = reviewCount >= 1000 ? `${(reviewCount / 1000).toFixed(1)}k` : `${reviewCount}`;
+            
+            // Only update if values are different to avoid unnecessary writes
+            if (course.rating !== avgRating || course.reviews !== reviewsStr) {
+              // We'll perform the update in the background
+              supabase.from('courses').update({ 
+                rating: avgRating, 
+                reviews: reviewsStr 
+              }).eq('id', course.id).then(({ error }) => {
+                if (error) console.error(`Error syncing rating for course ${course.id}:`, error);
+              });
+              return { ...course, rating: avgRating, reviews: reviewsStr };
+            }
+          }
+          return course;
+        });
+        
+        setCourses(updatedCourses);
       }
     } catch (err) {
       console.error("Database Audit Error:", err);
@@ -414,7 +442,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto mt-4 lg:mt-0">
           <button 
-            onClick={() => { setActiveTab('courses'); onEditCourse?.({ id: '', title: '', description: '', price: 0, category: Category.TECHNOLOGY, imageUrl: '', rating: 0, reviews: 0, duration: '', instructor: '' }); }}
+            onClick={() => { setActiveTab('courses'); onEditCourse?.({ id: '', title: '', description: '', price: 0, category: Category.TECHNOLOGY, imageUrl: '', rating: 0, reviews: '0', duration: '', instructor: '' }); }}
             className="px-10 py-5 bg-primary text-black font-black rounded-2xl shadow-2xl shadow-primary/20 hover:scale-[1.05] active:scale-95 transition-all text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3"
           >
             <span className="material-symbols-outlined text-2xl font-black">add</span>
@@ -953,12 +981,13 @@ const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
                 <button 
                   onClick={() => onEditCourse({
-                    id: `course-${Date.now()}`,
+                    id: '',
                     title: 'New Course Title',
                     description: 'Course description goes here...',
                     category: Category.TECHNOLOGY,
                     price: 49.99,
                     rating: 5.0,
+                    reviews: '0',
                     duration: '10h 30m',
                     imageUrl: 'https://picsum.photos/seed/course/800/600',
                     instructor: 'New Instructor'

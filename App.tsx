@@ -12,6 +12,7 @@ import HomePage from './components/HomePage';
 import AboutPage from './components/AboutPage';
 import WishlistPage from './components/WishlistPage';
 import MyLearningPage from './components/MyLearningPage';
+import CoursePlayer from './components/CoursePlayer';
 import CartPage from './components/CartPage';
 import CareerPathsPage from './components/CareerPathsPage';
 import SettingsPage from './components/SettingsPage';
@@ -123,10 +124,11 @@ const App: React.FC = () => {
 
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [enrolledCoursesData, setEnrolledCoursesData] = useState<EnrolledCourse[]>([]);
+  const [playingCourse, setPlayingCourse] = useState<EnrolledCourse | null>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [userData, setUserData] = useState<{ name: string; email: string } | null>(null);
+  const [userData, setUserData] = useState<{ name: string; email: string; avatarUrl?: string | null } | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
 
@@ -148,9 +150,9 @@ const App: React.FC = () => {
 
       if (data) {
         const fullEnrolledData: EnrolledCourse[] = data.map(item => {
-          const courseBase = COURSES.find(c => c.id === item.course_id);
+          const courseBase = allCourses.find(c => c.id === item.course_id);
           return {
-            ...(courseBase || COURSES[0]),
+            ...(courseBase || allCourses[0]),
             progress: item.progress || 0,
             purchaseDate: new Date(item.created_at).toLocaleDateString(),
             paymentMethod: item.payment_method,
@@ -229,7 +231,8 @@ const App: React.FC = () => {
         setIsLoggedIn(true);
         setUserData({
           name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Learner',
-          email: session.user.email || ''
+          email: session.user.email || '',
+          avatarUrl: session.user.user_metadata?.avatar_url || null
         });
         setIsAdmin(session.user.email === 'pranavdabane41@gmail.com');
         fetchEnrollments(session.user.id);
@@ -243,7 +246,8 @@ const App: React.FC = () => {
         setIsLoggedIn(true);
         setUserData({
           name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Learner',
-          email: session.user.email || ''
+          email: session.user.email || '',
+          avatarUrl: session.user.user_metadata?.avatar_url || null
         });
         setIsAdmin(session.user.email === 'pranavdabane41@gmail.com');
         fetchEnrollments(session.user.id);
@@ -289,6 +293,61 @@ const App: React.FC = () => {
     const local = localStorage.getItem('lms_all_courses');
     return local ? JSON.parse(local) : COURSES;
   });
+
+  const fetchCourses = async () => {
+    try {
+      const { data, error } = await supabase.from('courses').select('*');
+      if (error) throw error;
+      if (data && data.length > 0) {
+        setAllCourses(data as Course[]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch courses:", err);
+    }
+  };
+
+  const syncCourseRatings = async () => {
+    try {
+      const { data: reviews, error: rError } = await supabase
+        .from('reviews')
+        .select('rating, course_id');
+      
+      if (rError) throw rError;
+
+      const { data: latestCourses, error: cError } = await supabase.from('courses').select('*');
+      if (cError) throw cError;
+
+      const updatedCourses = (latestCourses as Course[]).map(course => {
+        const courseReviews = reviews.filter(r => r.course_id === course.id);
+        if (courseReviews.length > 0) {
+          const totalRating = courseReviews.reduce((sum, r) => sum + r.rating, 0);
+          const avgRating = parseFloat((totalRating / courseReviews.length).toFixed(1));
+          const reviewCount = courseReviews.length;
+          const reviewsStr = reviewCount >= 1000 ? `${(reviewCount / 1000).toFixed(1)}k` : `${reviewCount}`;
+          
+          if (course.rating !== avgRating || course.reviews !== reviewsStr) {
+            supabase.from('courses').update({ 
+              rating: avgRating, 
+              reviews: reviewsStr 
+            }).eq('id', course.id).then(({ error }) => {
+              if (error) console.error(`Error syncing rating for course ${course.id}:`, error);
+            });
+            return { ...course, rating: avgRating, reviews: reviewsStr };
+          }
+        }
+        return course;
+      });
+      
+      setAllCourses(updatedCourses);
+    } catch (err) {
+      console.error("Failed to sync course ratings:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourses();
+    syncCourseRatings();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('lms_all_courses', JSON.stringify(allCourses));
@@ -436,8 +495,8 @@ const App: React.FC = () => {
     setCartItems(prev => prev.filter(item => item.id !== id));
   };
 
-  const handleAuthSuccess = (name: string, email: string, adminStatus: boolean = false, isNewUser: boolean = false) => {
-    setUserData({ name, email });
+  const handleAuthSuccess = (name: string, email: string, adminStatus: boolean = false, isNewUser: boolean = false, avatarUrl?: string) => {
+    setUserData({ name, email, avatarUrl: avatarUrl || null });
     setIsLoggedIn(true);
     setIsAdmin(adminStatus);
     setIsAuthing(false);
@@ -564,7 +623,8 @@ const App: React.FC = () => {
           rating: courseToSave.rating,
           duration: courseToSave.duration,
           imageUrl: courseToSave.imageUrl,
-          instructor: courseToSave.instructor
+          instructor: courseToSave.instructor,
+          videoUrl: courseToSave.videoUrl
         }, { onConflict: 'id' });
 
       if (error) throw error;
@@ -585,13 +645,13 @@ const App: React.FC = () => {
     }
   };
 
-  const handleProfileUpdate = async (newName: string, newEmail?: string) => {
+  const handleProfileUpdate = async (newName: string, newEmail?: string, newAvatarUrl?: string) => {
     if (userData) {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error("No active session");
 
-        const updateData: any = { data: { full_name: newName } };
+        const updateData: any = { data: { full_name: newName, avatar_url: newAvatarUrl || userData.avatarUrl } };
         if (newEmail) updateData.email = newEmail;
 
         // Update Auth
@@ -599,7 +659,7 @@ const App: React.FC = () => {
         if (authError) throw authError;
 
         // Update Profiles Table
-        const profileUpdates: any = { full_name: newName };
+        const profileUpdates: any = { full_name: newName, avatar_url: newAvatarUrl || userData.avatarUrl };
         if (newEmail) profileUpdates.email = newEmail;
 
         const { error: profileError } = await supabase
@@ -618,7 +678,11 @@ const App: React.FC = () => {
           if (activityError) console.warn("Activity log update failed:", activityError.message);
         }
 
-        setUserData({ name: newName, email: newEmail || userData.email });
+        setUserData({ 
+          name: newName, 
+          email: newEmail || userData.email,
+          avatarUrl: newAvatarUrl || userData.avatarUrl
+        });
         
         if (newEmail) {
           showToast("Profile updated. Please check your new email for a confirmation link.");
@@ -656,12 +720,20 @@ const App: React.FC = () => {
     }
 
     if (selectedCourse) {
+      const enrolledCourse = enrolledCoursesData.find(c => c.id === selectedCourse.id);
       return (
         <CourseDetail 
           course={selectedCourse} 
           onBack={() => setSelectedCourse(null)} 
-          onEnroll={() => handleEnrollSingle(selectedCourse)}
-          isEnrolled={enrolledCourseIds.includes(selectedCourse.id)}
+          onEnroll={() => {
+            if (enrolledCourse) {
+              setPlayingCourse(enrolledCourse);
+              setSelectedCourse(null);
+            } else {
+              handleEnrollSingle(selectedCourse);
+            }
+          }}
+          isEnrolled={!!enrolledCourse}
           isAdmin={isAdmin}
           onSaveCourse={handleSaveCourse}
         />
@@ -745,6 +817,8 @@ const App: React.FC = () => {
             }}
             userName={userData?.name}
             userEmail={userData?.email}
+            playingCourse={playingCourse}
+            setPlayingCourse={setPlayingCourse}
           />
         );
       case 'home':
@@ -760,6 +834,7 @@ const App: React.FC = () => {
               setAuthMode('login');
               setIsAuthing(true);
             }}
+            onReviewSuccess={syncCourseRatings}
           />
         );
       case 'catalog':
@@ -1088,6 +1163,24 @@ const App: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {playingCourse && (
+        <CoursePlayer 
+          course={playingCourse} 
+          currentProgress={playingCourse.progress}
+          onClose={() => setPlayingCourse(null)} 
+          onUpdateProgress={async (newProgress) => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              await supabase.from('enrollments')
+                .update({ progress: newProgress })
+                .match({ user_id: session.user.id, course_id: playingCourse.id });
+            }
+            setEnrolledCoursesData(prev => prev.map(c => c.id === playingCourse.id ? {...c, progress: newProgress} : c));
+            setPlayingCourse({...playingCourse, progress: newProgress});
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -13,6 +13,7 @@ interface HomePageProps {
   isLoggedIn: boolean;
   enrolledCourses: EnrolledCourse[];
   onAuthTrigger: () => void;
+  onReviewSuccess?: () => void;
 }
 
 const DAILY_CHALLENGES = [
@@ -61,7 +62,8 @@ const HomePage: React.FC<HomePageProps> = ({
   onSelectCourse, 
   isLoggedIn, 
   enrolledCourses,
-  onAuthTrigger 
+  onAuthTrigger,
+  onReviewSuccess
 }) => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [showRequirementAlert, setShowRequirementAlert] = useState<{title: string, msg: string} | null>(null);
@@ -112,9 +114,10 @@ const HomePage: React.FC<HomePageProps> = ({
     setIsReviewModalOpen(true);
   };
 
-  const handleAddReview = (review: { name: string; text: string; rating: number }) => {
+  const handleAddReview = (review: { name: string; text: string; rating: number; courseId?: string }) => {
     const newReview = { name: review.name, role: "Course Graduate", img: `https://i.pravatar.cc/150?u=${Math.random()}`, text: review.text, isNew: true };
     setUserReviews([newReview, ...userReviews].slice(0, 3));
+    if (onReviewSuccess) onReviewSuccess();
   };
 
   const handleOptionClick = (index: number) => {

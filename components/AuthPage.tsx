@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 interface AuthPageProps {
   course?: Course | null;
   onBack: () => void;
-  onSuccess: (name: string, email: string, isAdmin?: boolean, isNewUser?: boolean) => void;
+  onSuccess: (name: string, email: string, isAdmin?: boolean, isNewUser?: boolean, avatarUrl?: string) => void;
   initialMode?: 'login' | 'signup';
   isMaintenanceMode?: boolean;
 }
@@ -92,11 +92,12 @@ const AuthPage: React.FC<AuthPageProps> = ({ course, onBack, onSuccess, initialM
 
         if (data.user) {
           const userName = data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'Learner';
+          const avatarUrl = data.user.user_metadata?.avatar_url || null;
           const isAdmin = data.user.email === 'pranavdabane41@gmail.com';
           
           setIsAuthSuccess(true);
           setTimeout(() => {
-            onSuccess(userName, data.user.email!, isAdmin, false);
+            onSuccess(userName, data.user.email!, isAdmin, false, avatarUrl);
           }, 1500);
         }
       } else if (mode === 'signup') {
@@ -120,9 +121,10 @@ const AuthPage: React.FC<AuthPageProps> = ({ course, onBack, onSuccess, initialM
           if (data.session) {
             // User auto-logged in (Confirm Email off in Supabase settings)
             const userName = data.user.user_metadata?.full_name || name || 'Learner';
+            const avatarUrl = data.user.user_metadata?.avatar_url || null;
             setIsAuthSuccess(true);
             setTimeout(() => {
-              onSuccess(userName, normalizedEmail, normalizedEmail === 'pranavdabane41@gmail.com', true);
+              onSuccess(userName, normalizedEmail, normalizedEmail === 'pranavdabane41@gmail.com', true, avatarUrl);
             }, 1500);
           } else {
             // User must confirm email

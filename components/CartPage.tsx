@@ -1,6 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Course, CartItem, EnrolledCourse } from '../types';
+import ReceiptModal from './ReceiptModal';
+import { AnimatePresence } from 'motion/react';
 
 interface CartPageProps {
   cartItems: CartItem[];
@@ -25,6 +27,7 @@ const CartPage: React.FC<CartPageProps> = ({
   onBrowse,
   onSelectCourse
 }) => {
+  const [selectedOrder, setSelectedOrder] = useState<EnrolledCourse | null>(null);
   const isDiscountActive = cartItems.length >= 3;
   const originalTotal = cartItems.reduce((acc, item) => acc + item.price, 0);
   const cartTotal = isDiscountActive ? originalTotal * 0.5 : originalTotal;
@@ -207,7 +210,7 @@ const CartPage: React.FC<CartPageProps> = ({
                     <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.3em] text-secondary-text"><span>Method</span><span className="text-white">{order.paymentMethod || 'Credit Card'}</span></div>
                     <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.3em] text-secondary-text"><span>Date</span><span className="text-white">{order.purchaseDate || 'Mar 1, 2025'}</span></div>
                   </div>
-                  <button onClick={() => onSelectCourse(order)} className="w-full py-5 bg-background-main rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-black transition-all border border-neon-border text-white">Receipt & Details</button>
+                  <button onClick={() => setSelectedOrder(order)} className="w-full py-5 bg-background-main rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-black transition-all border border-neon-border text-white">Receipt & Details</button>
                 </div>
               ))
             ) : (
@@ -216,6 +219,15 @@ const CartPage: React.FC<CartPageProps> = ({
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {selectedOrder && (
+          <ReceiptModal 
+            order={selectedOrder} 
+            onClose={() => setSelectedOrder(null)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

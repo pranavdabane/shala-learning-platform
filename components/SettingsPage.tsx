@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
 interface SettingsPageProps {
-  user: { name: string; email: string } | null;
+  user: { name: string; email: string; avatarUrl?: string | null } | null;
   onBack: () => void;
-  onSave: (newName: string, newEmail?: string) => void;
+  onSave: (newName: string, newEmail?: string, newAvatarUrl?: string) => void;
 }
 
 type SettingsSection = 'Profile' | 'Appearance' | 'Notifications' | 'Security' | 'Privacy';
@@ -18,10 +18,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
   useEffect(() => {
     if (user?.name) setName(user.name);
     if (user?.email) setEmail(user.email);
+    if (user?.avatarUrl) setAvatarUrl(user.avatarUrl);
   }, [user]);
 
   const [bio, setBio] = useState(() => localStorage.getItem('lms_settings_bio') || 'Senior Product Designer exploring the intersection of AI and Human Psychology.');
   const [timezone, setTimezone] = useState(() => localStorage.getItem('lms_settings_timezone') || 'GMT-05:00 (EST)');
+  const [language, setLanguage] = useState(() => localStorage.getItem('lms_settings_language') || 'English (US)');
+  const [avatarUrl, setAvatarUrl] = useState(() => user?.avatarUrl || localStorage.getItem('lms_settings_avatarUrl') || '');
   
   const [fontSize, setFontSize] = useState<'Small' | 'Medium' | 'Large'>(() => (localStorage.getItem('lms_settings_fontSize') as any) || 'Medium');
   const [reducedMotion, setReducedMotion] = useState(() => localStorage.getItem('lms_settings_reducedMotion') === 'true');
@@ -51,10 +54,14 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
   const [anonymizedAnalytics, setAnonymizedAnalytics] = useState(() => localStorage.getItem('lms_settings_anonymizedAnalytics') !== 'false');
   const [profileIndexing, setProfileIndexing] = useState(() => localStorage.getItem('lms_settings_profileIndexing') === 'true');
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   // Persistence Effects
   useEffect(() => {
     localStorage.setItem('lms_settings_bio', bio);
     localStorage.setItem('lms_settings_timezone', timezone);
+    localStorage.setItem('lms_settings_language', language);
+    localStorage.setItem('lms_settings_avatarUrl', avatarUrl);
     localStorage.setItem('lms_settings_fontSize', fontSize);
     localStorage.setItem('lms_settings_reducedMotion', reducedMotion.toString());
     localStorage.setItem('lms_settings_notifProgress', JSON.stringify(notifProgress));
@@ -141,7 +148,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
     setSaveError('');
     setSaveStatus('saving');
     setTimeout(() => {
-      onSave(trimmedName, trimmedEmail !== user?.email ? trimmedEmail : undefined);
+      onSave(trimmedName, trimmedEmail !== user?.email ? trimmedEmail : undefined, avatarUrl !== user?.avatarUrl ? avatarUrl : undefined);
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 3000);
     }, 1200);
@@ -153,20 +160,45 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
     return 'text-base';
   };
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      // In a real app, you'd call a backend function to delete the user from Supabase Auth
+      // Since we don't have that easily accessible, we'll sign out and clear local data
+      await supabase.auth.signOut();
+      localStorage.clear();
+      window.location.href = '/';
+    } catch (err) {
+      console.error('Error deleting account:', err);
+      alert('Failed to delete account. Please try again later.');
+    }
+  };
+
   const renderProfile = () => (
     <section className="bg-card p-8 rounded-[40px] border border-neon-border shadow-sm space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
       <div className="flex items-center gap-6">
         <div className="relative group">
-          <div className="size-24 rounded-full border-4 border-primary overflow-hidden shadow-[0_0_20px_rgba(230,255,0,0.3)]">
+          <div className="size-24 rounded-full border-4 border-primary overflow-hidden shadow-[0_0_20px_rgba(230,255,0,0.3)] bg-background-main">
             <img 
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=e6ff00&color=000000&bold=true`} 
+              src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=e6ff00&color=000000&bold=true`} 
               alt="Avatar" 
               className="w-full h-full object-cover" 
             />
           </div>
-          <button className="absolute bottom-0 right-0 size-8 bg-background-main text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform border border-neon-border">
+          <label className="absolute bottom-0 right-0 size-8 bg-background-main text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform border border-neon-border cursor-pointer">
             <span className="material-symbols-outlined text-sm">photo_camera</span>
-          </button>
+            <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
+          </label>
         </div>
         <div className="text-left">
           <h3 className="text-xl font-black text-white">Personal Information</h3>
@@ -212,16 +244,23 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
             <option>GMT-05:00 (EST)</option>
             <option>GMT+00:00 (UTC)</option>
             <option>GMT+05:30 (IST)</option>
+            <option>GMT+08:00 (SGT)</option>
+            <option>GMT+09:00 (JST)</option>
           </select>
         </div>
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase text-secondary-text tracking-widest">Language</label>
           <select 
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
             className="w-full bg-background-main border border-neon-border rounded-2xl px-5 py-4 text-sm focus:ring-2 focus:ring-primary text-white transition-all appearance-none cursor-pointer outline-none"
           >
             <option>English (US)</option>
             <option>English (UK)</option>
             <option>Hindi (HI)</option>
+            <option>Spanish (ES)</option>
+            <option>French (FR)</option>
+            <option>German (DE)</option>
           </select>
         </div>
       </div>
@@ -454,19 +493,19 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
         <h4 className="text-sm font-black text-red-500 uppercase tracking-tight">Danger Zone</h4>
         <div className="flex gap-4">
           <button 
-            onClick={() => alert("Account deletion request submitted. Our team will contact you within 48 hours.")}
+            onClick={() => setShowDeleteConfirm(true)}
             className="flex-1 py-4 px-4 bg-red-500/10 text-red-500 text-[10px] font-black uppercase rounded-2xl border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
           >
             Delete My Account
           </button>
           <button 
             onClick={() => {
-              const data = { bio, timezone, fontSize, reducedMotion, notifProgress, notifMarketing, notifSecurity, digestFrequency, twoFactor, authType, publicProfile, showProgress, anonymizedAnalytics, profileIndexing };
+              const data = { bio, timezone, language, avatarUrl, fontSize, reducedMotion, notifProgress, notifMarketing, notifSecurity, digestFrequency, twoFactor, authType, publicProfile, showProgress, anonymizedAnalytics, profileIndexing };
               const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;
-              a.download = 'lms-settings-export.json';
+              a.download = 'learning-platform-settings-export.json';
               a.click();
               URL.revokeObjectURL(url);
             }}
@@ -476,6 +515,36 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
           </button>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-background-dark/90 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="bg-card w-full max-w-sm rounded-[40px] p-10 border border-red-500/30 shadow-2xl text-center space-y-6">
+            <div className="size-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto">
+              <span className="material-symbols-outlined text-4xl">warning</span>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-black text-white">Delete Account?</h3>
+              <p className="text-sm text-secondary-text leading-relaxed">
+                This action is permanent and cannot be undone. All your progress, certificates, and purchases will be lost.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={handleDeleteAccount}
+                className="w-full py-4 bg-red-500 text-white font-black rounded-2xl hover:bg-red-600 transition-all uppercase tracking-widest text-xs"
+              >
+                Yes, Delete Permanently
+              </button>
+              <button 
+                onClick={() => setShowDeleteConfirm(false)}
+                className="w-full py-4 bg-background-main text-white font-black rounded-2xl border border-neon-border hover:bg-background-secondary transition-all uppercase tracking-widest text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import ProfileDropdown from './ProfileDropdown';
 
@@ -15,7 +15,7 @@ interface HeaderProps {
   enrolledCount: number;
   isLoggedIn: boolean;
   isAdmin?: boolean;
-  user?: { name: string; email: string } | null;
+  user?: { name: string; email: string; avatarUrl?: string | null } | null;
   isMobileMenuOpen: boolean;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
@@ -39,9 +39,26 @@ const Header: React.FC<HeaderProps> = ({
   toggleDarkMode
 }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const avatarUrl = user 
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    if (isProfileOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isProfileOpen]);
+  const avatarUrl = user?.avatarUrl || (user 
     ? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=${isAdmin ? 'ff0000' : 'f2f20d'}&color=${isAdmin ? 'ffffff' : '181811'}&bold=true`
-    : "https://lh3.googleusercontent.com/aida-public/AB6AXuDiAlEG1u2oD4veMA6KReqiK8KyL6dRFVRuvjZpTYs8frCMyYDwvCBHESnpNR4gwXfFruyaiJ1N3DTaQJ8S6j9ui9r_-qHflL-iBseKFyeqSIrxledClSUlXRzyGEFk3yt0p2X-TH0h4TAwFdgL8A9mxTPWWOscI7XpeQy-hi6RwNo5ayL_xxDstPGKk9EVJYYo6jfDIf9EkThAd5_GzQXbMHTp-ibAWxvScE_vEtW7oAKTOIfqZ2jmWi3Brfi-lMLx_ASnZPCt_h07";
+    : "https://lh3.googleusercontent.com/aida-public/AB6AXuDiAlEG1u2oD4veMA6KReqiK8KyL6dRFVRuvjZpTYs8frCMyYDwvCBHESnpNR4gwXfFruyaiJ1N3DTaQJ8S6j9ui9r_-qHflL-iBseKFyeqSIrxledClSUlXRzyGEFk3yt0p2X-TH0h4TAwFdgL8A9mxTPWWOscI7XpeQy-hi6RwNo5ayL_xxDstPGKk9EVJYYo6jfDIf9EkThAd5_GzQXbMHTp-ibAWxvScE_vEtW7oAKTOIfqZ2jmWi3Brfi-lMLx_ASnZPCt_h07");
 
   return (
     <header className="sticky top-0 z-50 border-b border-solid border-neon-border bg-background-main/80 backdrop-blur-md">
@@ -148,7 +165,7 @@ const Header: React.FC<HeaderProps> = ({
           </motion.button>
           
           {isLoggedIn ? (
-            <div className="relative">
+            <div className="relative" ref={profileRef}>
               <div 
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className={`size-11 lg:size-12 rounded-full border-2 overflow-hidden cursor-pointer hover:scale-105 transition-transform ${isAdmin ? 'border-red-500' : 'border-primary shadow-[0_0_10px_rgba(230,255,0,0.3)]'}`}

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Course } from '../types';
 import { getCourseInsights, chatWithTutor } from '../services/gemini';
 import { supabase } from '../lib/supabase';
+import AddReviewModal from './AddReviewModal';
 
 interface CourseDetailProps {
   course: Course;
@@ -21,12 +22,20 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
   const [isChatting, setIsChatting] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Reviews State
+  const [courseReviews, setCourseReviews] = useState<any[]>([]);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+
   // Edit Mode State
   const [isEditing, setIsEditing] = useState(course.id === '');
   const [editedCourse, setEditedCourse] = useState<Course>(course);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (course.id) {
+      fetchReviews();
       async function fetchInsights() {
         setIsLoadingInsights(true);
         try {
@@ -43,8 +52,71 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
     } else {
       setInsights('AI insights will be generated once the course is saved.');
       setIsLoadingInsights(false);
+      setIsLoadingReviews(false);
     }
   }, [course]);
+
+  const fetchReviews = async () => {
+    if (!course.id) return;
+    setIsLoadingReviews(true);
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('course_id', course.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setCourseReviews(data || []);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    } finally {
+      setIsLoadingReviews(false);
+    }
+  };
+
+  const updateCourseRating = async (reviews: any[]) => {
+    if (!course.id || reviews.length === 0) return;
+    
+    const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+    const avgRating = parseFloat((totalRating / reviews.length).toFixed(1));
+    const reviewCount = reviews.length;
+    
+    // Format review count like "2.1k" if needed, but for now just string
+    const reviewsStr = reviewCount >= 1000 ? `${(reviewCount / 1000).toFixed(1)}k` : `${reviewCount}`;
+
+    try {
+      const { error } = await supabase
+        .from('courses')
+        .update({ 
+          rating: avgRating,
+          reviews: reviewsStr
+        })
+        .eq('id', course.id);
+      
+      if (error) throw error;
+      
+      // Update local state if needed, or notify parent
+      if (onSaveCourse) {
+        onSaveCourse({ ...course, rating: avgRating, reviews: reviewsStr });
+      }
+    } catch (error) {
+      console.error('Error updating course rating:', error);
+    }
+  };
+
+  const handleReviewSuccess = async () => {
+    await fetchReviews();
+    // Recalculate rating after fetching new reviews
+    const { data } = await supabase
+      .from('reviews')
+      .select('rating')
+      .eq('course_id', course.id);
+    
+    if (data) {
+      updateCourseRating(data);
+    }
+  };
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -87,6 +159,35 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
     setIsEditing(false);
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      const filePath = `course-thumbnails/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('course-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('course-images')
+        .getPublicUrl(filePath);
+
+      setEditedCourse(prev => ({ ...prev, imageUrl: publicUrl }));
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image. Please ensure the "course-images" bucket exists and is public.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-10 md:gap-16 animate-in fade-in slide-in-from-bottom-4 duration-700 text-left">
       <div className="flex-1 space-y-10 md:space-y-16">
@@ -121,13 +222,31 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
                     className="w-full bg-white/5 border border-neon-border rounded-2xl px-6 py-4 text-white font-black text-2xl md:text-5xl focus:ring-2 focus:ring-primary outline-none font-display tracking-tighter"
                     placeholder="Course Title"
                   />
-                  <input 
-                    type="text"
-                    value={editedCourse.imageUrl}
-                    onChange={(e) => setEditedCourse({...editedCourse, imageUrl: e.target.value})}
-                    className="w-full bg-white/5 border border-neon-border rounded-2xl px-6 py-3 text-white text-xs focus:ring-2 focus:ring-primary outline-none font-medium"
-                    placeholder="Image URL"
-                  />
+                  <div className="flex gap-2">
+                    <input 
+                      type="text"
+                      value={editedCourse.imageUrl}
+                      onChange={(e) => setEditedCourse({...editedCourse, imageUrl: e.target.value})}
+                      className="flex-1 bg-white/5 border border-neon-border rounded-2xl px-6 py-3 text-white text-xs focus:ring-2 focus:ring-primary outline-none font-medium"
+                      placeholder="Image URL"
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="px-6 py-3 bg-primary text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-sm">{isUploading ? 'sync' : 'upload_file'}</span>
+                      {isUploading ? 'Uploading...' : 'Upload File'}
+                    </button>
+                    <input 
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                  </div>
                 </div>
               ) : (
                 <div className="max-w-4xl space-y-4">
@@ -293,7 +412,67 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
             {isEnrolled ? "CONTINUE LEARNING" : "ENROLL NOW"}
           </button>
         </div>
+
+        {/* Course Reviews Section */}
+        <div className="bg-card rounded-[48px] p-8 md:p-12 shadow-sm border border-neon-border space-y-8">
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h4 className="font-black text-xl md:text-2xl tracking-tighter font-display text-white">Student Reviews</h4>
+              <div className="flex items-center gap-2 text-primary">
+                <span className="material-symbols-outlined text-sm fill-1">star</span>
+                <span className="text-xs font-bold">{course.rating} ({course.reviews})</span>
+              </div>
+            </div>
+            <button 
+              onClick={() => setIsReviewModalOpen(true)}
+              className="px-6 py-3 bg-background-main border border-neon-border text-primary text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-primary hover:text-black transition-all"
+            >
+              Write Review
+            </button>
+          </div>
+
+          <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
+            {isLoadingReviews ? (
+              <div className="space-y-4 animate-pulse">
+                {[1, 2].map(i => (
+                  <div key={i} className="h-24 bg-background-main rounded-3xl w-full"></div>
+                ))}
+              </div>
+            ) : courseReviews.length > 0 ? (
+              courseReviews.map((rev) => (
+                <div key={rev.id} className="p-6 bg-background-main rounded-3xl border border-neon-border space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <img src={rev.user_img} className="size-8 rounded-full" alt="" />
+                      <div>
+                        <h5 className="text-xs font-black text-white">{rev.user_name}</h5>
+                        <p className="text-[8px] text-secondary-text uppercase font-bold">{new Date(rev.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-0.5 text-primary">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className={`material-symbols-outlined text-[10px] ${i < rev.rating ? 'fill-1' : ''}`}>star</span>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-xs text-secondary-text leading-relaxed italic">"{rev.comment}"</p>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-10 space-y-4">
+                <span className="material-symbols-outlined text-4xl text-zinc-800">rate_review</span>
+                <p className="text-xs text-secondary-text font-bold">No reviews yet. Be the first to share your experience!</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+      <AddReviewModal 
+        isOpen={isReviewModalOpen} 
+        onClose={() => setIsReviewModalOpen(false)} 
+        onSuccess={handleReviewSuccess}
+        courseId={course.id}
+      />
     </div>
   );
 };

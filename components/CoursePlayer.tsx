@@ -11,15 +11,17 @@ interface CoursePlayerProps {
 }
 
 const CoursePlayer: React.FC<CoursePlayerProps> = ({ course, currentProgress, onClose, onUpdateProgress }) => {
-  const [lessons] = useState([
+  const defaultLessons = [
     { id: 1, title: "Introduction & Fundamentals", duration: "12:40" },
     { id: 2, title: "Core Architecture & Design", duration: "18:20" },
     { id: 3, title: "Advanced Technical Implementation", duration: "24:15" },
     { id: 4, title: "Industry Best Practices", duration: "15:50" },
     { id: 5, title: "Final Project & Synthesis", duration: "32:10" }
-  ]);
+  ];
 
-  const initialLessonIndex = Math.min(Math.floor(currentProgress / 20), lessons.length - 1);
+  const lessons = course.lessons || defaultLessons;
+
+  const initialLessonIndex = Math.min(Math.floor(currentProgress / (100 / lessons.length)), lessons.length - 1);
   const [activeLessonIndex, setActiveLessonIndex] = useState(initialLessonIndex);
   const [takeaways, setTakeaways] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -53,7 +55,8 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ course, currentProgress, on
   };
 
   const handleCompleteLesson = () => {
-    const nextProgress = Math.min(currentProgress + 20, 100);
+    const progressPerLesson = 100 / lessons.length;
+    const nextProgress = Math.min(currentProgress + progressPerLesson, 100);
     onUpdateProgress(nextProgress);
     if (activeLessonIndex < lessons.length - 1) {
       setActiveLessonIndex(prev => prev + 1);
@@ -62,6 +65,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ course, currentProgress, on
   };
 
   const activeLesson = lessons[activeLessonIndex];
+  const activeVideoUrl = activeLesson.videoUrl || course.videoUrl;
 
   return (
     <div className="fixed inset-0 z-[160] bg-background-main flex flex-col animate-in fade-in duration-500 overflow-hidden">
@@ -93,11 +97,11 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ course, currentProgress, on
           </div>
           <button 
             onClick={handleCompleteLesson}
-            disabled={currentProgress >= (activeLesson.id * 20)}
+            disabled={currentProgress >= (activeLesson.id * (100 / lessons.length))}
             className="px-6 md:px-10 py-3 md:py-4 bg-primary text-black text-xs md:text-sm font-black rounded-2xl hover:shadow-[0_0_20px_rgba(230,255,0,0.4)] transition-all disabled:opacity-50 flex items-center gap-2 md:gap-3 uppercase tracking-widest"
           >
             <span className="material-symbols-outlined text-sm md:text-base">check_circle</span>
-            {currentProgress >= (activeLesson.id * 20) ? 'COMPLETED' : 'COMPLETE'}
+            {currentProgress >= (activeLesson.id * (100 / lessons.length)) ? 'COMPLETED' : 'COMPLETE'}
           </button>
         </div>
       </div>
@@ -105,8 +109,8 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ course, currentProgress, on
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         <div className="flex-[3] bg-black relative flex flex-col lg:flex-row items-center justify-center overflow-y-auto lg:overflow-hidden no-scrollbar">
           <div className="w-full h-auto lg:h-full aspect-video lg:aspect-auto">
-            {course.videoUrl ? (
-              <video key={activeLesson.id} src={course.videoUrl} className="w-full h-full object-contain" controls autoPlay />
+            {activeVideoUrl ? (
+              <video key={activeLesson.id} src={activeVideoUrl} className="w-full h-full object-contain" controls autoPlay />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center space-y-6 bg-background-main">
                 <div className="size-24 md:size-32 rounded-full bg-card flex items-center justify-center text-secondary-text animate-pulse border border-neon-border">
@@ -150,13 +154,14 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ course, currentProgress, on
         <div className="flex-1 bg-card border-l border-neon-border flex flex-col overflow-hidden text-left">
           <div className="p-8 border-b border-neon-border bg-background-main/20">
              <h3 className="text-white font-black text-sm uppercase tracking-[0.2em] font-display">Curriculum</h3>
-             <p className="text-secondary-text text-[10px] font-bold mt-1 uppercase tracking-widest">5 VIDEO LESSONS • {course.duration}</p>
+             <p className="text-secondary-text text-[10px] font-bold mt-1 uppercase tracking-widest">{lessons.length} VIDEO LESSONS • {course.duration}</p>
           </div>
           <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
             {lessons.map((lesson, index) => {
-              const isCompleted = currentProgress >= (lesson.id * 20);
+              const progressPerLesson = 100 / lessons.length;
+              const isCompleted = currentProgress >= (lesson.id * progressPerLesson);
               const isActive = activeLessonIndex === index;
-              const isLocked = !isCompleted && !isActive && (index > 0 && currentProgress < (lessons[index].id - 1) * 20);
+              const isLocked = !isCompleted && !isActive && (index > 0 && currentProgress < (lessons[index].id - 1) * progressPerLesson);
 
               return (
                 <div key={lesson.id} onClick={() => !isLocked && setActiveLessonIndex(index)} className={`p-5 rounded-3xl flex items-center gap-5 cursor-pointer transition-all border-2 ${isActive ? 'bg-primary/10 border-primary/40 text-primary' : isLocked ? 'opacity-40 cursor-not-allowed border-transparent' : 'hover:bg-white/5 border-transparent text-secondary-text'}`}>
@@ -174,7 +179,6 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ course, currentProgress, on
         </div>
       </div>
     </div>
-
   );
 };
 

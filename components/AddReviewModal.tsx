@@ -5,14 +5,26 @@ import { supabase } from '../lib/supabase';
 interface AddReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (review: { name: string; text: string; rating: number }) => void;
+  onSuccess: (review: { name: string; text: string; rating: number; courseId?: string }) => void;
+  courseId?: string;
 }
 
-const AddReviewModal: React.FC<AddReviewModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const AddReviewModal: React.FC<AddReviewModalProps> = ({ isOpen, onClose, onSuccess, courseId }) => {
   const [rating, setRating] = useState(5);
   const [text, setText] = useState('');
   const [name, setName] = useState('');
+  const [selectedCourseId, setSelectedCourseId] = useState<string>(courseId || '');
+  const [courses, setCourses] = useState<{id: string, title: string}[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen && !courseId) {
+      // Fetch courses for selection
+      supabase.from('courses').select('id, title').then(({ data }) => {
+        if (data) setCourses(data);
+      });
+    }
+  }, [isOpen, courseId]);
 
   if (!isOpen) return null;
 
@@ -31,16 +43,18 @@ const AddReviewModal: React.FC<AddReviewModalProps> = ({ isOpen, onClose, onSucc
           comment: text,
           rating: rating,
           user_id: session?.user?.id || null,
+          course_id: selectedCourseId || null,
           user_role: 'Verified Graduate',
           user_img: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f2f20d&color=181811&bold=true`
         }]);
 
       if (error) throw error;
 
-      onSuccess({ name, text, rating });
+      onSuccess({ name, text, rating, courseId: selectedCourseId });
       setName('');
       setText('');
       setRating(5);
+      setSelectedCourseId(courseId || '');
       onClose();
     } catch (err) {
       console.error("Error saving review:", err);
@@ -89,6 +103,22 @@ const AddReviewModal: React.FC<AddReviewModalProps> = ({ isOpen, onClose, onSucc
               placeholder="e.g. David Smith"
             />
           </div>
+
+          {!courseId && courses.length > 0 && (
+            <div className="space-y-2 text-left">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-secondary-text">Select Course (Optional)</label>
+              <select
+                value={selectedCourseId}
+                onChange={(e) => setSelectedCourseId(e.target.value)}
+                className="w-full bg-background-main border border-neon-border rounded-2xl p-4 text-sm focus:ring-2 focus:ring-primary text-white outline-none appearance-none"
+              >
+                <option value="">General Platform Review</option>
+                {courses.map(c => (
+                  <option key={c.id} value={c.id}>{c.title}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="space-y-2 text-left">
             <label className="text-[10px] font-bold uppercase tracking-widest text-secondary-text">Detailed Feedback</label>

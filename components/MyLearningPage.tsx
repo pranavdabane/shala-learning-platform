@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { EnrolledCourse, Course } from '../types';
-import CoursePlayer from './CoursePlayer';
 
 interface MyLearningPageProps {
   enrolledCourses: EnrolledCourse[];
@@ -11,6 +10,8 @@ interface MyLearningPageProps {
   onUpdateProgress?: (courseId: string, progress: number) => void;
   userName?: string;
   userEmail?: string;
+  playingCourse: EnrolledCourse | null;
+  setPlayingCourse: (course: EnrolledCourse | null) => void;
 }
 
 const CertificateModal: React.FC<{ 
@@ -219,12 +220,13 @@ const MyLearningPage: React.FC<MyLearningPageProps> = ({
   enrolledCourses, 
   onContinue, 
   onBrowse, 
-  onViewCareerPaths,
+  onViewCareerPaths, 
   onUpdateProgress,
   userName,
-  userEmail
+  userEmail,
+  playingCourse,
+  setPlayingCourse
 }) => {
-  const [playingCourse, setPlayingCourse] = useState<EnrolledCourse | null>(null);
   const [selectedCert, setSelectedCert] = useState<EnrolledCourse | null>(null);
   const [isPreparing, setIsPreparing] = useState(false);
 
@@ -255,21 +257,6 @@ const MyLearningPage: React.FC<MyLearningPageProps> = ({
               </div>
            </div>
         </div>
-      )}
-
-      {/* Course Video Player */}
-      {playingCourse && (
-        <CoursePlayer 
-          course={playingCourse} 
-          currentProgress={playingCourse.progress}
-          onClose={() => setPlayingCourse(null)} 
-          onUpdateProgress={(newProgress) => {
-            if (onUpdateProgress) {
-              onUpdateProgress(playingCourse.id, newProgress);
-              setPlayingCourse({...playingCourse, progress: newProgress});
-            }
-          }}
-        />
       )}
 
       {/* Certificate Modal */}

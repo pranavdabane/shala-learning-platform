@@ -1,4 +1,11 @@
 
+export interface Lesson {
+  id: number;
+  title: string;
+  duration: string;
+  videoUrl?: string;
+}
+
 export interface Course {
   id: string;
   title: string;
@@ -11,6 +18,7 @@ export interface Course {
   imageUrl: string;
   instructor?: string;
   videoUrl?: string;
+  lessons?: Lesson[];
   isFeatured?: boolean;
 }
 

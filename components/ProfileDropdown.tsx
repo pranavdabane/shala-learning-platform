@@ -7,7 +7,7 @@ interface ProfileDropdownProps {
   enrolledCount: number;
   onNavigate: (view: any) => void;
   onLogout: () => void;
-  user?: { name: string; email: string } | null;
+  user?: { name: string; email: string; avatarUrl?: string | null } | null;
   isAdmin?: boolean;
 }
 
@@ -26,7 +26,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isOpen, onClose, enro
             <img 
               alt="Profile" 
               className="h-full w-full object-cover" 
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=${isAdmin ? 'ff0000' : 'e6ff00'}&color=${isAdmin ? 'ffffff' : '000000'}&bold=true`} 
+              src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=${isAdmin ? 'ff0000' : 'e6ff00'}&color=${isAdmin ? 'ffffff' : '000000'}&bold=true`} 
             />
           </div>
           <div>
