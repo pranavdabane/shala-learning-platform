@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Course } from '../types';
 import { getSignUpMotivation } from '../services/gemini';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface AuthPageProps {
   course?: Course | null;
@@ -60,7 +60,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ course, onBack, onSuccess, initialM
     setError(null);
     setSuccessMsg(null);
 
-    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedEmail = (email || '').toLowerCase().trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(normalizedEmail)) {
       setError({ message: "Please enter a valid email address.", type: 'generic' });
@@ -157,8 +157,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ course, onBack, onSuccess, initialM
 
   if (isAuthSuccess) {
     return (
-      <div className="max-w-md mx-auto bg-card rounded-[32px] md:rounded-[40px] p-8 md:p-12 shadow-[0_0_30px_rgba(230,255,0,0.2)] animate-in zoom-in-95 duration-500 text-center border border-neon-border flex flex-col items-center justify-center min-h-[350px] md:min-h-[400px]">
-        <div className="size-20 md:size-24 rounded-full bg-primary flex items-center justify-center text-black shadow-[0_0_20px_rgba(230,255,0,0.4)] animate-bounce mb-6 md:mb-8">
+      <div className="max-w-md mx-auto bg-card rounded-[32px] md:rounded-[40px] p-8 md:p-12 shadow-[0_0_30px_var(--primary-glow)] animate-in zoom-in-95 duration-500 text-center border border-neon-border flex flex-col items-center justify-center min-h-[350px] md:min-h-[400px]">
+        <div className="size-20 md:size-24 rounded-full bg-primary flex items-center justify-center text-black shadow-[0_0_20px_var(--primary-glow)] animate-bounce mb-6 md:mb-8">
           <span className="material-symbols-outlined text-4xl md:text-5xl font-black">check_circle</span>
         </div>
         <div className="space-y-2">
@@ -217,7 +217,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ course, onBack, onSuccess, initialM
           {(!isMaintenanceMode && (mode === 'login' || mode === 'signup')) && (
             <div className="flex p-1.5 bg-background-main rounded-2xl mb-10 relative border border-neon-border">
               <div 
-                className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-primary rounded-xl shadow-[0_0_15px_rgba(230,255,0,0.3)] transition-all duration-300 ease-out z-0 ${mode === 'signup' ? 'translate-x-full ml-1.5' : 'translate-x-0'}`}
+                className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-primary rounded-xl shadow-[0_0_15px_var(--primary-glow)] transition-all duration-300 ease-out z-0 ${mode === 'signup' ? 'translate-x-full ml-1.5' : 'translate-x-0'}`}
               />
               <button 
                 onClick={() => toggleMode('login')}
@@ -286,7 +286,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ course, onBack, onSuccess, initialM
               <div className="space-y-1">
                 <div className="flex justify-between items-center">
                   <label className="text-[10px] font-black uppercase text-secondary-text tracking-widest">Email Address</label>
-                  {email.toLowerCase().trim() === 'pranavdabane41@gmail.com' && (
+                  {(email?.toLowerCase().trim() || '') === 'pranavdabane41@gmail.com' && (
                     <span className="text-[10px] font-black text-red-500 uppercase tracking-widest animate-pulse">Admin Account Detected</span>
                   )}
                 </div>
@@ -319,7 +319,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ course, onBack, onSuccess, initialM
               </div>
             )}
 
-            <button disabled={isSubmitting} className={`w-full py-5 ${isMaintenanceMode ? 'bg-red-500' : 'bg-primary'} text-black font-black rounded-3xl shadow-[0_0_20px_rgba(230,255,0,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-70 mt-4 group uppercase tracking-widest text-sm`}>
+            <button disabled={isSubmitting} className={`w-full py-5 ${isMaintenanceMode ? 'bg-red-500' : 'bg-primary'} text-black font-black rounded-3xl shadow-[0_0_20px_var(--primary-glow)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-70 mt-4 group uppercase tracking-widest text-sm`}>
               {isSubmitting ? (
                 <span className="size-5 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
               ) : (

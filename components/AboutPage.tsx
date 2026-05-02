@@ -84,7 +84,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
           ].map((ins, i) => (
             <div key={i} className="group flex flex-col items-center text-center p-10 bg-card rounded-[40px] border border-neon-border hover:border-primary/50 hover:shadow-[0_0_25px_rgba(230,255,0,0.15)] transition-all duration-500">
               <div className="relative mb-6">
-                <img src={ins.img} className="size-28 rounded-3xl object-cover grayscale group-hover:grayscale-0 transition-all duration-500 ring-4 ring-transparent group-hover:ring-primary/20" alt={ins.name} />
+                <img src={ins.img || undefined} className="size-28 rounded-3xl object-cover grayscale group-hover:grayscale-0 transition-all duration-500 ring-4 ring-transparent group-hover:ring-primary/20" alt={ins.name} />
                 <div className="absolute -bottom-2 -right-2 size-8 bg-primary rounded-xl flex items-center justify-center text-black shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-500">
                   <span className="material-symbols-outlined text-sm font-black">verified</span>
                 </div>

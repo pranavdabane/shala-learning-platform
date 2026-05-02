@@ -72,7 +72,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ userEmail, userName }) => {
 
       <div className="max-w-2xl relative z-10">
         <div className="space-y-4 mb-12">
-          <h2 className="text-4xl font-black tracking-tighter font-display text-white">Direct Inquiry</h2>
+          <h2 className="text-4xl font-black tracking-tighter font-display text-main-text">Direct Inquiry</h2>
           <p className="text-secondary-text font-medium text-lg">Have a specific question about our curriculum or corporate training? Reach out directly.</p>
         </div>
 
@@ -126,7 +126,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ userEmail, userName }) => {
                 <select 
                   value={formData.subject}
                   onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                  className="w-full bg-background-main border border-neon-border rounded-2xl px-6 py-5 text-sm focus:ring-2 focus:ring-primary transition-all outline-none text-white appearance-none cursor-pointer"
+                  className="w-full bg-background-main border border-neon-border rounded-2xl px-6 py-5 text-sm focus:ring-2 focus:ring-primary transition-all outline-none text-main-text appearance-none cursor-pointer"
                 >
                   <option className="bg-background-secondary">General Inquiry</option>
                   <option className="bg-background-secondary">Course Content Feedback</option>
@@ -145,14 +145,14 @@ const ContactForm: React.FC<ContactFormProps> = ({ userEmail, userName }) => {
                 rows={5}
                 value={formData.message}
                 onChange={(e) => setFormData({...formData, message: e.target.value})}
-                className="w-full bg-background-main border border-neon-border rounded-2xl px-6 py-5 text-sm focus:ring-2 focus:ring-primary transition-all outline-none text-white resize-none" 
+                className="w-full bg-background-main border border-neon-border rounded-2xl px-6 py-5 text-sm focus:ring-2 focus:ring-primary transition-all outline-none text-main-text resize-none" 
                 placeholder="How can we help you achieve your goals?" 
               />
             </div>
 
             <button 
               disabled={isSubmitting}
-              className="w-full py-6 bg-primary text-black font-black rounded-3xl shadow-[0_0_20px_rgba(230,255,0,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-70 group uppercase tracking-widest text-sm"
+              className="w-full py-6 bg-primary text-black font-black rounded-3xl shadow-[0_0_20px_var(--primary-glow)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-70 group uppercase tracking-widest text-sm"
             >
               {isSubmitting ? (
                 <span className="size-6 border-2 border-current border-t-transparent rounded-full animate-spin"></span>

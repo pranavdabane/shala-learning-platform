@@ -134,19 +134,19 @@ const HomePage: React.FC<HomePageProps> = ({
       {/* Success Popup for Correct Answer */}
       {showResultPopup && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-background-main/80 backdrop-blur-xl animate-in fade-in duration-300">
-          <div className="bg-card w-full max-w-sm rounded-[40px] p-10 shadow-[0_0_30px_rgba(230,255,0,0.2)] animate-in zoom-in-95 duration-300 text-center space-y-6 border border-neon-border">
+          <div className="bg-card w-full max-w-sm rounded-[40px] p-10 shadow-[0_0_30px_var(--primary-glow)] animate-in zoom-in-95 duration-300 text-center space-y-6 border border-neon-border">
             <div className="size-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto text-green-500 animate-bounce">
               <span className="material-symbols-outlined text-4xl font-black">verified</span>
             </div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white uppercase tracking-tighter">True!</h3>
+              <h3 className="text-2xl font-black text-main-text uppercase tracking-tighter">True!</h3>
               <p className="text-sm text-secondary-text leading-relaxed font-medium">
                 {challenge.explanation}
               </p>
             </div>
             <button 
               onClick={() => setShowResultPopup(false)} 
-              className="w-full py-4 bg-primary text-black font-black rounded-2xl hover:shadow-[0_0_20px_rgba(230,255,0,0.4)] transition-all shadow-lg uppercase tracking-widest"
+              className="w-full py-4 bg-primary text-black font-black rounded-2xl hover:shadow-[0_0_20px_var(--primary-glow)] transition-all shadow-lg uppercase tracking-widest"
             >
               Continue Learning
             </button>
@@ -156,21 +156,21 @@ const HomePage: React.FC<HomePageProps> = ({
 
       {showRequirementAlert && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-background-main/80 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-card w-full max-w-sm rounded-[40px] p-10 shadow-[0_0_30px_rgba(230,255,0,0.2)] animate-in zoom-in-95 duration-300 text-center space-y-6 border border-neon-border">
+          <div className="bg-card w-full max-w-sm rounded-[40px] p-10 shadow-[0_0_30px_var(--primary-glow)] animate-in zoom-in-95 duration-300 text-center space-y-6 border border-neon-border">
             <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
               <span className="material-symbols-outlined text-4xl font-black">lock</span>
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl font-black text-white">{showRequirementAlert.title}</h3>
+              <h3 className="text-xl font-black text-main-text">{showRequirementAlert.title}</h3>
               <p className="text-sm text-secondary-text leading-relaxed">{showRequirementAlert.msg}</p>
             </div>
-            <button onClick={() => setShowRequirementAlert(null)} className="w-full py-4 bg-primary text-black font-black rounded-2xl hover:shadow-[0_0_20px_rgba(230,255,0,0.4)] transition-all shadow-lg">GOT IT</button>
+            <button onClick={() => setShowRequirementAlert(null)} className="w-full py-4 bg-primary text-black font-black rounded-2xl hover:shadow-[0_0_20px_var(--primary-glow)] transition-all shadow-lg">GOT IT</button>
           </div>
         </div>
       )}
 
       {/* Hero Section */}
-      <section className="relative px-5 sm:px-8 lg:px-12 py-16 md:py-32 overflow-hidden rounded-[32px] md:rounded-[60px] bg-background-secondary text-white mb-12 md:mb-20 text-left border border-neon-border">
+      <section className="relative px-5 sm:px-8 lg:px-12 py-16 md:py-32 overflow-hidden rounded-[32px] md:rounded-[60px] bg-background-secondary text-main-text mb-12 md:mb-20 text-left border border-neon-border">
         <div className="absolute top-0 right-0 w-full md:w-1/2 h-full opacity-20 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[300px] md:size-[600px] bg-primary rounded-full blur-[80px] md:blur-[150px]"></div>
         </div>
@@ -182,14 +182,14 @@ const HomePage: React.FC<HomePageProps> = ({
           </div>
           <h1 className="text-4xl sm:text-6xl md:text-8xl font-black leading-[1] tracking-tighter mb-6 md:mb-8">
             Master Skills <br className="hidden sm:block" />
-            <span className="text-primary drop-shadow-[0_0_15px_rgba(230,255,0,0.3)]">Define Careers.</span>
+            <span className="text-primary drop-shadow-[0_0_15px_var(--primary-glow)]">Define Careers.</span>
           </h1>
           <p className="text-base sm:text-lg md:text-2xl text-secondary-text max-w-2xl mb-10 md:mb-12 leading-relaxed font-bold">
             Join 50,000+ professionals learning high-impact skills in Technology, Design, and Business with our expert-led, AI-powered curriculum.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
             <motion.button 
-              whileHover={{ scale: 1.05, shadow: "0 0 20px rgba(230,255,0,0.4)" }}
+              whileHover={{ scale: 1.05, shadow: "0 0 20px var(--primary-glow)" }}
               whileTap={{ scale: 0.95 }}
               onClick={onBrowse} 
               className="w-full sm:w-auto px-10 py-5 bg-primary text-black font-black rounded-2xl shadow-2xl transition-all flex items-center justify-center gap-3 text-base md:text-lg"
@@ -200,7 +200,7 @@ const HomePage: React.FC<HomePageProps> = ({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={onLearnMore} 
-              className="w-full sm:w-auto px-10 py-5 bg-card text-white font-black rounded-2xl hover:bg-background-main border border-neon-border transition-all text-base md:text-lg"
+              className="w-full sm:w-auto px-10 py-5 bg-card text-main-text font-black rounded-2xl hover:bg-background-main border border-neon-border transition-all text-base md:text-lg"
             >
               LEARN MORE
             </motion.button>
@@ -209,9 +209,9 @@ const HomePage: React.FC<HomePageProps> = ({
 
         <div className="mt-16 md:mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 border-t border-neon-border pt-10 md:pt-12">
           <div className="text-left"><p className="text-3xl md:text-4xl font-black text-primary">500+</p><p className="text-[10px] md:text-xs text-secondary-text uppercase font-black tracking-widest">Expert Courses</p></div>
-          <div className="text-left"><p className="text-3xl md:text-4xl font-black text-white">50k+</p><p className="text-[10px] md:text-xs text-secondary-text uppercase font-black tracking-widest">Active Students</p></div>
-          <div className="text-left"><p className="text-3xl md:text-4xl font-black text-white">4.9/5</p><p className="text-[10px] md:text-xs text-secondary-text uppercase font-black tracking-widest">Average Rating</p></div>
-          <div className="text-left"><p className="text-3xl md:text-4xl font-black text-white">92%</p><p className="text-[10px] md:text-xs text-secondary-text uppercase font-black tracking-widest">Career Advancement</p></div>
+          <div className="text-left"><p className="text-3xl md:text-4xl font-black text-main-text">50k+</p><p className="text-[10px] md:text-xs text-secondary-text uppercase font-black tracking-widest">Active Students</p></div>
+          <div className="text-left"><p className="text-3xl md:text-4xl font-black text-main-text">4.9/5</p><p className="text-[10px] md:text-xs text-secondary-text uppercase font-black tracking-widest">Average Rating</p></div>
+          <div className="text-left"><p className="text-3xl md:text-4xl font-black text-main-text">92%</p><p className="text-[10px] md:text-xs text-secondary-text uppercase font-black tracking-widest">Career Advancement</p></div>
         </div>
       </section>
 
@@ -223,7 +223,7 @@ const HomePage: React.FC<HomePageProps> = ({
                <span className="material-symbols-outlined font-black text-2xl">bolt</span>
                <span className="text-xs font-black uppercase tracking-[0.4em]">Daily AI IQ Challenge</span>
              </div>
-             <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-white">Test your industry knowledge.</h2>
+             <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-main-text">Test your industry knowledge.</h2>
              <p className="text-secondary-text text-lg md:text-2xl font-bold leading-tight py-2">
                "{challenge.question}"
              </p>
@@ -231,13 +231,13 @@ const HomePage: React.FC<HomePageProps> = ({
                 {challenge.options.map((opt, i) => (
                   <motion.button 
                     key={i}
-                    whileHover={selectedOption === null ? { scale: 1.02, shadow: "0 0 15px rgba(230,255,0,0.2)" } : {}}
+                    whileHover={selectedOption === null ? { scale: 1.02, shadow: "0 0 15px var(--primary-glow)" } : {}}
                     whileTap={selectedOption === null ? { scale: 0.98 } : {}}
                     disabled={selectedOption !== null}
                     onClick={() => handleOptionClick(i)}
                     className={`px-8 py-5 rounded-2xl text-xs md:text-sm font-black uppercase tracking-widest transition-all border-2 flex items-center justify-center gap-4 min-h-[64px] ${
                       selectedOption === null 
-                        ? 'bg-background-main text-white hover:bg-primary hover:text-black border-neon-border' 
+                        ? 'bg-background-main text-main-text hover:bg-primary hover:text-black border-neon-border' 
                         : selectedOption === i 
                           ? i === challenge.correctIndex 
                             ? 'bg-green-500 border-green-500 text-white' 
@@ -275,7 +275,7 @@ const HomePage: React.FC<HomePageProps> = ({
       <section className="mb-24 text-left">
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 mb-10 md:mb-12">
           <div className="space-y-2">
-            <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-white">Featured Programs</h2>
+            <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-main-text">Featured Programs</h2>
             <p className="text-sm md:text-lg text-secondary-text font-bold">Kickstart your journey with our popular specialized courses.</p>
           </div>
           <button onClick={onBrowse} className="flex items-center gap-3 text-primary font-black hover:gap-5 transition-all text-base md:text-xl group">
@@ -293,22 +293,22 @@ const HomePage: React.FC<HomePageProps> = ({
       <section className="mb-24 space-y-10 md:space-y-16">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <div className="space-y-1 md:space-y-2">
-            <h2 className="text-3xl md:text-4xl font-black text-white">Voices of Success</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-main-text">Voices of Success</h2>
             <p className="text-xs md:text-sm text-secondary-text font-medium">Genuine feedback from our graduates.</p>
           </div>
-          <button onClick={handleReviewClick} className="w-full md:w-auto flex items-center justify-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-primary text-black border-2 border-primary rounded-2xl md:rounded-3xl font-black hover:shadow-[0_0_20px_rgba(230,255,0,0.4)] transition-all shadow-xl shadow-primary/10 text-xs md:text-sm">
+          <button onClick={handleReviewClick} className="w-full md:w-auto flex items-center justify-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-primary text-black border-2 border-primary rounded-2xl md:rounded-3xl font-black hover:shadow-[0_0_20px_var(--primary-glow)] transition-all shadow-xl shadow-primary/10 text-xs md:text-sm">
             <span className="material-symbols-outlined text-lg md:text-xl">rate_review</span> ADD YOUR REVIEW
           </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {userReviews.map((rev) => (
-              <div key={rev.name} className={`relative p-6 md:p-8 rounded-[32px] md:rounded-[40px] shadow-sm border text-left space-y-4 md:space-y-6 transition-transform hover:-translate-y-2 duration-300 bg-card border-neon-border hover:shadow-[0_0_20px_rgba(230,255,0,0.2)]`}>
+            {userReviews.map((rev, idx) => (
+              <div key={`${rev.name}-${idx}`} className={`relative p-6 md:p-8 rounded-[32px] md:rounded-[40px] shadow-sm border text-left space-y-4 md:space-y-6 transition-transform hover:-translate-y-2 duration-300 bg-card border-neon-border hover:shadow-[0_0_20px_var(--primary-glow)]`}>
                 {rev.isNew && <div className="absolute -top-3 -right-3 bg-primary text-black text-[8px] md:text-[10px] font-black px-3 md:px-4 py-1 md:py-1.5 rounded-full shadow-lg">NEW REVIEW</div>}
-                <div className="flex gap-0.5 md:gap-1 text-primary"> {[1,2,3,4,5].map(j => <span key={`${rev.name}-star-${j}`} className="material-symbols-outlined text-sm md:text-base fill-1">star</span>)} </div>
+                <div className="flex gap-0.5 md:gap-1 text-primary"> {[1,2,3,4,5].map(j => <span key={`${rev.name}-${idx}-star-${j}`} className="material-symbols-outlined text-sm md:text-base fill-1">star</span>)} </div>
               <p className={`italic leading-relaxed text-sm md:text-base text-secondary-text`}> "{rev.text}" </p>
               <div className={`flex items-center gap-3 md:gap-4 border-t pt-4 md:pt-6 border-neon-border`}>
-                <img src={rev.img} className="size-10 md:size-12 rounded-full ring-2 ring-primary/20" alt="" />
-                <div><h4 className="font-black text-xs md:text-sm text-white">{rev.name}</h4><p className={`text-[8px] md:text-[10px] uppercase font-bold tracking-tighter text-primary`}> {rev.role} </p></div>
+                <img src={rev.img || undefined} className="size-10 md:size-12 rounded-full ring-2 ring-primary/20" alt="" />
+                <div><h4 className="font-black text-xs md:text-sm text-main-text">{rev.name}</h4><p className={`text-[8px] md:text-[10px] uppercase font-bold tracking-tighter text-primary`}> {rev.role} </p></div>
               </div>
             </div>
           ))}
@@ -316,7 +316,7 @@ const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* Final CTA */}
-      <section className="bg-primary rounded-[40px] md:rounded-[60px] p-8 md:p-24 text-center space-y-8 relative overflow-hidden shadow-[0_0_50px_rgba(230,255,0,0.3)]">
+      <section className="bg-primary rounded-[40px] md:rounded-[60px] p-8 md:p-24 text-center space-y-8 relative overflow-hidden shadow-[0_0_50px_var(--primary-glow)]">
         <div className="absolute top-0 right-0 p-10 opacity-10 hidden md:block"><span className="material-symbols-outlined text-[200px] font-black text-black">celebration</span></div>
         <h2 className="text-3xl md:text-7xl font-black text-black leading-none tracking-tighter">Ready to start <br />your journey?</h2>
         <p className="text-black/70 font-bold text-base md:text-xl max-w-xl mx-auto uppercase tracking-wide">Unlock 500+ premium industry certifications.</p>

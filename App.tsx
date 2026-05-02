@@ -89,8 +89,8 @@ const LegalModal: React.FC<{ type: 'terms' | 'privacy' | null; content: LegalCon
           </button>
         </div>
         <div className="p-10 overflow-y-auto space-y-10 no-scrollbar">
-          {active.sections.map((s) => (
-            <div key={s.h} className="space-y-3 text-left">
+          {active.sections.map((s, idx) => (
+            <div key={`${active.title}-section-${idx}`} className="space-y-3 text-left">
               <h4 className="text-lg font-black text-primary">{s.h}</h4>
               <p className="text-sm text-secondary-text leading-relaxed font-medium">{s.p}</p>
             </div>
@@ -127,26 +127,42 @@ const App: React.FC = () => {
   const [playingCourse, setPlayingCourse] = useState<EnrolledCourse | null>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [userData, setUserData] = useState<{ name: string; email: string; avatarUrl?: string | null } | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
     document.documentElement.classList.add('dark');
   }, []);
 
-  const toggleDarkMode = () => {};
-
   // FETCH ENROLLMENTS FROM SUPABASE
   const fetchEnrollments = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('enrollments')
-        .select('*')
-        .eq('user_id', userId);
+      let data: any[] | null = null;
+      let error: any = null;
 
-      if (error) throw error;
+      try {
+        const result = await supabase
+          .from('enrollments')
+          .select('*')
+          .eq('user_id', userId);
+        data = result.data;
+        error = result.error;
+        if (error) throw new Error(error.message);
+      } catch (err) {
+        console.warn("Direct enrollments fetch failed, trying proxy...");
+        try {
+          const response = await fetch(`/api/proxy/enrollments?user_id=eq.${userId}`);
+          if (response.ok) {
+            data = await response.json();
+          } else {
+            throw new Error("Proxy failed");
+          }
+        } catch (proxyErr) {
+          console.error("Enrollments proxy also failed");
+        }
+      }
 
       if (data) {
         const fullEnrolledData: EnrolledCourse[] = data.map(item => {
@@ -169,12 +185,26 @@ const App: React.FC = () => {
   // FETCH WISHLIST FROM SUPABASE
   const fetchWishlist = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('wishlist')
-        .select('course_id')
-        .eq('user_id', userId);
+      let data: any[] | null = null;
+      let error: any = null;
 
-      if (error) throw error;
+      try {
+        const result = await supabase
+          .from('wishlist')
+          .select('course_id')
+          .eq('user_id', userId);
+        data = result.data;
+        error = result.error;
+        if (error) throw new Error(error.message);
+      } catch (err) {
+        console.warn("Direct wishlist fetch failed, trying proxy...");
+        try {
+          const response = await fetch(`/api/proxy/wishlist?user_id=eq.${userId}`);
+          if (response.ok) {
+             data = await response.json();
+          }
+        } catch (e) {}
+      }
 
       if (data) {
         setWishlist(data.map(item => item.course_id));
@@ -296,13 +326,83 @@ const App: React.FC = () => {
 
   const fetchCourses = async () => {
     try {
-      const { data, error } = await supabase.from('courses').select('*');
-      if (error) throw error;
-      if (data && data.length > 0) {
-        setAllCourses(data as Course[]);
+      console.log("Fetching courses from Supabase...");
+      let data: any[] | null = null;
+      let error: any = null;
+
+      try {
+        // Try direct Supabase fetch first
+        const result = await supabase.from('courses').select('*');
+        data = result.data;
+        error = result.error;
+        if (error) throw new Error(error.message);
+      } catch (fetchErr: any) {
+        console.warn("Direct Supabase fetch failed or returned error, trying proxy...", fetchErr.message);
+        // Fallback to server-side proxy
+        try {
+          const response = await fetch('/api/proxy/courses');
+          if (response.ok) {
+            data = await response.json();
+            error = null; // Clear error on success
+            console.log("Successfully fetched courses via proxy.");
+          } else {
+            const errData = await response.json();
+            throw new Error(errData.error || "Proxy fetch failed");
+          }
+        } catch (proxyErr: any) {
+          console.error("Proxy fetch also failed:", proxyErr.message);
+          setIsOffline(true);
+        }
       }
-    } catch (err) {
+
+      if (error) {
+        console.error("Supabase error fetching courses:", error.message, error.details, error.hint);
+        // We don't throw here any more to avoid crashing the app, just log it.
+        // It will fallback to local storage COURSES.
+      }
+      
+      let coursesToSet: Course[] = [];
+      if (data && data.length > 0) {
+        console.log(`Successfully fetched ${data.length} courses.`);
+        // Ensure every course has lessons (fallback for "do not depend on admin")
+        coursesToSet = (data as Course[]).map(course => {
+          if (!course.lessons || course.lessons.length === 0) {
+            const publicVideos = [
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4'
+            ];
+            return {
+              ...course,
+              lessons: [
+                { id: `${course.id}-default-1`, title: "Introduction to " + course.title, duration: "10:00", videoUrl: publicVideos[0] },
+                { id: `${course.id}-default-2`, title: "Core Concepts & Fundamentals", duration: "15:00", videoUrl: publicVideos[1] },
+                { id: `${course.id}-default-3`, title: "Advanced Implementation", duration: "20:00", videoUrl: publicVideos[2] },
+                { id: `${course.id}-default-4`, title: "Practical Workshop", duration: "25:00", videoUrl: publicVideos[3] },
+                { id: `${course.id}-default-5`, title: "Course Summary & Next Steps", duration: "12:00", videoUrl: publicVideos[4] }
+              ]
+            };
+          }
+          return course;
+        });
+      } else {
+        console.log("No courses found in Supabase, using defaults.");
+        coursesToSet = COURSES;
+      }
+      // Deduplicate courses by ID to prevent React key errors
+      const uniqueCourses = coursesToSet.filter((course, index, self) =>
+        index === self.findIndex((c) => c.id === course.id)
+      );
+      setAllCourses(uniqueCourses);
+    } catch (err: any) {
       console.error("Failed to fetch courses:", err);
+      // If it's a network error, it might be "Failed to fetch"
+      if (err.message === "Failed to fetch") {
+        console.error("Network error: Please check your Supabase URL and connectivity.");
+      }
+      setAllCourses(COURSES);
     }
   };
 
@@ -317,28 +417,30 @@ const App: React.FC = () => {
       const { data: latestCourses, error: cError } = await supabase.from('courses').select('*');
       if (cError) throw cError;
 
-      const updatedCourses = (latestCourses as Course[]).map(course => {
-        const courseReviews = reviews.filter(r => r.course_id === course.id);
-        if (courseReviews.length > 0) {
-          const totalRating = courseReviews.reduce((sum, r) => sum + r.rating, 0);
-          const avgRating = parseFloat((totalRating / courseReviews.length).toFixed(1));
-          const reviewCount = courseReviews.length;
-          const reviewsStr = reviewCount >= 1000 ? `${(reviewCount / 1000).toFixed(1)}k` : `${reviewCount}`;
-          
-          if (course.rating !== avgRating || course.reviews !== reviewsStr) {
-            supabase.from('courses').update({ 
-              rating: avgRating, 
-              reviews: reviewsStr 
-            }).eq('id', course.id).then(({ error }) => {
-              if (error) console.error(`Error syncing rating for course ${course.id}:`, error);
-            });
-            return { ...course, rating: avgRating, reviews: reviewsStr };
+      if (latestCourses && latestCourses.length > 0) {
+        const updatedCourses = (latestCourses as Course[]).map(course => {
+          const courseReviews = reviews.filter(r => r.course_id === course.id);
+          if (courseReviews.length > 0) {
+            const totalRating = courseReviews.reduce((sum, r) => sum + r.rating, 0);
+            const avgRating = parseFloat((totalRating / courseReviews.length).toFixed(1));
+            const reviewCount = courseReviews.length;
+            const reviewsStr = reviewCount >= 1000 ? `${(reviewCount / 1000).toFixed(1)}k` : `${reviewCount}`;
+            
+            if (course.rating !== avgRating || course.reviews !== reviewsStr) {
+              supabase.from('courses').update({ 
+                rating: avgRating, 
+                reviews: reviewsStr 
+              }).eq('id', course.id).then(({ error }) => {
+                if (error) console.error(`Error syncing rating for course ${course.id}:`, error);
+              });
+              return { ...course, rating: avgRating, reviews: reviewsStr };
+            }
           }
-        }
-        return course;
-      });
-      
-      setAllCourses(updatedCourses);
+          return course;
+        });
+        
+        setAllCourses(updatedCourses);
+      }
     } catch (err) {
       console.error("Failed to sync course ratings:", err);
     }
@@ -369,10 +471,10 @@ const App: React.FC = () => {
 
   const filteredCourses = useMemo(() => {
     return allCourses.filter((course) => {
-      const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          course.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const catSlug = activeCategory.toLowerCase();
-      const courseCatSlug = course.category.toLowerCase();
+      const matchesSearch = (course.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || 
+                          (course.description?.toLowerCase() || '').includes(searchQuery.toLowerCase());
+      const catSlug = activeCategory?.toLowerCase() || '';
+      const courseCatSlug = course.category?.toLowerCase() || '';
       const matchesCategory = activeCategory === Category.ALL || 
                             courseCatSlug.includes(catSlug) || 
                             catSlug.includes(courseCatSlug);
@@ -624,7 +726,9 @@ const App: React.FC = () => {
           duration: courseToSave.duration,
           imageUrl: courseToSave.imageUrl,
           instructor: courseToSave.instructor,
-          videoUrl: courseToSave.videoUrl
+          videoUrl: courseToSave.videoUrl,
+          lessons: courseToSave.lessons || [],
+          isFeatured: courseToSave.isFeatured || false
         }, { onConflict: 'id' });
 
       if (error) throw error;
@@ -749,7 +853,7 @@ const App: React.FC = () => {
         return (
           <AdminPage 
             courses={allCourses}
-            setCourses={handleSaveCourse}
+            setCourses={setAllCourses}
             platformSettings={platformSettings}
             setPlatformSettings={setPlatformSettings}
             legalContent={legalContent}
@@ -1017,7 +1121,7 @@ const App: React.FC = () => {
                        {[1, 2, 3].map(i => (
                          <div key={i} className={`size-8 sm:size-10 rounded-lg sm:rounded-xl flex items-center justify-center border-2 transition-all shrink-0 ${selectedBundleCourses[i-1] ? 'bg-primary border-primary text-black shadow-lg shadow-primary/20' : 'border-neon-border text-secondary-text'}`}>
                             {selectedBundleCourses[i-1] ? (
-                              <img src={selectedBundleCourses[i-1].imageUrl} className="size-full object-cover rounded-lg" alt="" referrerPolicy="no-referrer" />
+                              <img src={selectedBundleCourses[i-1].imageUrl || undefined} className="size-full object-cover rounded-lg" alt="" referrerPolicy="no-referrer" />
                             ) : (
                               <span className="material-symbols-outlined text-xs sm:text-sm">auto_awesome</span>
                             )}
@@ -1073,11 +1177,22 @@ const App: React.FC = () => {
       <Header 
         onSearch={(query) => { setSearchQuery(query); setCurrentView('catalog'); handleResetNavigation(); setIsMobileMenuOpen(false); }} 
         onNavigate={handleNavigate} onAuth={handleHeaderAuth} onLogout={handleLogout}
-        currentView={currentView} cartCount={cartItems.length} wishlistCount={wishlist.length}
+        onUpdateAvatar={(url) => handleProfileUpdate(userData?.name || '', undefined, url)}
+        currentView={currentView} searchQuery={searchQuery} cartCount={cartItems.length} wishlistCount={wishlist.length}
         enrolledCount={enrolledCoursesData.length} isLoggedIn={isLoggedIn} isAdmin={isAdmin} user={userData}
         isMobileMenuOpen={isMobileMenuOpen} onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode}
       />
+
+      {isOffline && (
+        <div className="bg-red-500/10 border-b border-red-500/20 py-3 px-6 animate-pulse">
+           <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
+              <span className="material-symbols-outlined text-red-500 text-lg">cloud_off</span>
+              <p className="text-[10px] font-black uppercase tracking-widest text-red-500">
+                Supabase Connection Unreachable. Operating in local cache mode. Some features may be limited.
+              </p>
+           </div>
+        </div>
+      )}
 
       <div className="flex-1 flex min-h-[calc(100vh-65px)]">
         {!isAuthing && (

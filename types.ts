@@ -1,9 +1,10 @@
 
 export interface Lesson {
-  id: number;
+  id: string;
   title: string;
   duration: string;
   videoUrl?: string;
+  module?: string;
 }
 
 export interface Course {
@@ -20,9 +21,11 @@ export interface Course {
   videoUrl?: string;
   lessons?: Lesson[];
   isFeatured?: boolean;
+  created_at?: string;
 }
 
 export interface EnrolledCourse extends Course {
+  enrollmentId: string;
   progress: number;
   purchaseDate?: string;
   paymentMethod?: string;

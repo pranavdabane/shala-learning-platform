@@ -290,17 +290,17 @@ const MyLearningPage: React.FC<MyLearningPageProps> = ({
       {/* Grid */}
       {enrolledCourses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-16">
-          {enrolledCourses.map((course) => {
+          {enrolledCourses.map((course, idx) => {
             const isCompleted = course.progress >= 100;
             const isEligibleForCert = course.progress >= 80;
 
             return (
               <div 
-                key={course.id}
+                key={`${course.id}-${idx}`}
                 className="group bg-card rounded-[56px] overflow-hidden shadow-sm hover:shadow-[0_0_30px_rgba(230,255,0,0.15)] transition-all duration-700 border border-neon-border flex flex-col h-full hover:-translate-y-2"
               >
                 <div className="relative h-72 overflow-hidden cursor-pointer shrink-0" onClick={() => setPlayingCourse(course)}>
-                  <img src={course.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="" />
+                  <img src={course.imageUrl || undefined} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="" />
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 backdrop-blur-[2px]">
                     <div className="size-24 rounded-full bg-primary flex items-center justify-center text-black shadow-2xl scale-50 group-hover:scale-100 transition-all duration-500">
                         <span className="material-symbols-outlined text-5xl font-black">play_arrow</span>
@@ -332,7 +332,11 @@ const MyLearningPage: React.FC<MyLearningPageProps> = ({
                     <div className="space-y-5">
                       <div className="flex justify-between items-end">
                         <span className="text-[10px] font-black text-secondary-text uppercase tracking-[0.3em]">Mastery Level</span>
-                        <span className={`text-2xl font-black font-display ${isEligibleForCert ? 'text-primary' : 'text-secondary-text'}`}>{course.progress}%</span>
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-primary text-sm">play_circle</span>
+                          <span className="text-[10px] font-black text-primary uppercase tracking-widest">{(course.lessons?.length || 5)} Lessons</span>
+                          <span className={`text-2xl font-black font-display ml-2 ${isEligibleForCert ? 'text-primary' : 'text-secondary-text'}`}>{course.progress}%</span>
+                        </div>
                       </div>
                       <div className="h-5 w-full bg-background-main rounded-full overflow-hidden p-1.5 border border-neon-border">
                         <div 
@@ -341,6 +345,26 @@ const MyLearningPage: React.FC<MyLearningPageProps> = ({
                         />
                       </div>
                     </div>
+
+                    {/* Curriculum Preview */}
+                    {course.lessons && course.lessons.length > 0 && (
+                      <div className="pt-4 space-y-3 border-t border-neon-border/50">
+                        <p className="text-[8px] font-black text-secondary-text uppercase tracking-[0.3em] mb-2">Curriculum Highlights</p>
+                        <div className="space-y-2">
+                          {course.lessons.slice(0, 2).map((lesson, idx) => (
+                            <div key={lesson.id} className="flex items-center gap-3 text-left">
+                              <div className="size-5 rounded-lg bg-background-main border border-neon-border flex items-center justify-center text-[8px] font-black text-secondary-text shrink-0">
+                                {idx + 1}
+                              </div>
+                              <p className="text-[10px] font-bold text-main-text truncate flex-1">{lesson.title}</p>
+                            </div>
+                          ))}
+                          {course.lessons.length > 2 && (
+                            <p className="text-[8px] font-bold text-primary uppercase tracking-widest pl-8">+{course.lessons.length - 2} more modules</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-5 pt-8">

@@ -240,7 +240,7 @@ const EnrollmentPage: React.FC<EnrollmentPageProps> = ({ courses, user, onBack, 
             <div className="space-y-4 mb-8 relative z-10 max-h-40 overflow-y-auto no-scrollbar pr-2">
               {courses.map(course => (
                 <div key={course.id} className="flex gap-4 items-center">
-                  <img src={course.imageUrl} className="size-12 rounded-lg object-cover" alt="" referrerPolicy="no-referrer" />
+                  <img src={course.imageUrl || undefined} className="size-12 rounded-lg object-cover" alt="" referrerPolicy="no-referrer" />
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-bold truncate">{course.title}</h4>
                     <p className="text-[10px] text-secondary-text">${course.price}</p>

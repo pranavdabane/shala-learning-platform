@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Course } from '../types';
-import { getCourseInsights, chatWithTutor } from '../services/gemini';
+import { motion, AnimatePresence } from 'motion/react';
+import { Course, Category } from '../types';
+import { getCourseInsights, chatWithTutor, importLessonFromUrl } from '../services/gemini';
 import { supabase } from '../lib/supabase';
 import AddReviewModal from './AddReviewModal';
+import { Lesson } from '../types';
 
 interface CourseDetailProps {
   course: Course;
@@ -29,9 +31,25 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
 
   // Edit Mode State
   const [isEditing, setIsEditing] = useState(course.id === '');
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [editedCourse, setEditedCourse] = useState<Course>(course);
   const [isUploading, setIsUploading] = useState(false);
+  const [importUrl, setImportUrl] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
+  const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+    setNotification({ message, type });
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const lessonImportRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (course.id) {
@@ -159,6 +177,64 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
     setIsEditing(false);
   };
 
+  const handleImportFromUrl = async () => {
+    if (!importUrl.trim()) return;
+    setIsImporting(true);
+    try {
+      const lessonData = await importLessonFromUrl(importUrl);
+      if (lessonData) {
+        const newLesson: Lesson = {
+          id: `lesson-${Date.now()}`,
+          title: lessonData.title || "New Lesson",
+          duration: lessonData.duration || "10:00",
+          videoUrl: lessonData.videoUrl || importUrl
+        };
+        setEditedCourse(prev => ({
+          ...prev,
+          lessons: [...(prev.lessons || []), newLesson]
+        }));
+        setImportUrl('');
+      } else {
+        showNotification("Failed to extract lesson info. Please check the URL.", "error");
+      }
+    } catch (error) {
+      console.error("Import error:", error);
+      showNotification("Error importing lesson.", "error");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleLessonFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const content = event.target?.result as string;
+        const importedLessons = JSON.parse(content);
+        if (Array.isArray(importedLessons)) {
+          const validLessons = importedLessons.map((l: any) => ({
+            id: l.id || `lesson-${Math.random().toString(36).substr(2, 9)}`,
+            title: l.title || "Untitled Lesson",
+            duration: l.duration || "0:00",
+            videoUrl: l.videoUrl || ""
+          }));
+          setEditedCourse(prev => ({
+            ...prev,
+            lessons: [...(prev.lessons || []), ...validLessons]
+          }));
+        } else {
+          showNotification("Invalid file format. Expected a JSON array of lessons.", "error");
+        }
+      } catch (err) {
+        showNotification("Error parsing JSON file.", "error");
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -182,7 +258,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
       setEditedCourse(prev => ({ ...prev, imageUrl: publicUrl }));
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Failed to upload image. Please ensure the "course-images" bucket exists and is public.');
+      showNotification('Failed to upload image. Please ensure the "course-images" bucket exists and is public.', "error");
     } finally {
       setIsUploading(false);
     }
@@ -190,6 +266,46 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
 
   return (
     <div className="flex flex-col lg:flex-row gap-10 md:gap-16 animate-in fade-in slide-in-from-bottom-4 duration-700 text-left">
+      <AnimatePresence>
+        {isPreviewOpen && course.videoUrl && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] flex items-center justify-center p-4 sm:p-8 bg-black/95 backdrop-blur-2xl"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-6xl aspect-video bg-black rounded-[32px] overflow-hidden shadow-[0_0_100px_rgba(230,255,0,0.2)] border border-white/10"
+            >
+              <video 
+                src={course.videoUrl || undefined} 
+                className="w-full h-full" 
+                controls 
+                autoPlay 
+                muted
+                playsInline
+                referrerPolicy="no-referrer"
+                onError={(e) => console.error("Video playback error:", e)}
+              />
+              <button 
+                onClick={() => setIsPreviewOpen(false)}
+                className="absolute top-6 right-6 size-12 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white hover:text-black transition-all z-50"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+              <div className="absolute bottom-6 left-6 right-6 flex justify-between items-center pointer-events-none">
+                <div className="bg-black/60 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10">
+                  <p className="text-xs font-black text-primary uppercase tracking-widest">Preview Mode</p>
+                  <h4 className="text-white font-bold truncate max-w-md">{course.title}</h4>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="flex-1 space-y-10 md:space-y-16">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
           <button 
@@ -209,15 +325,28 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
           )}
         </div>
 
-        <div className="relative h-64 sm:h-80 md:h-[500px] rounded-[48px] md:rounded-[64px] overflow-hidden shadow-2xl border border-neon-border">
-          <img src={isEditing ? editedCourse.imageUrl : course.imageUrl} className="w-full h-full object-cover" alt={course.title} />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent flex items-end p-8 md:p-16">
+        <div className="relative h-64 sm:h-80 md:h-[500px] rounded-[48px] md:rounded-[64px] overflow-hidden shadow-2xl border border-neon-border group">
+          <img src={(isEditing ? editedCourse.imageUrl : course.imageUrl) || undefined} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt={course.title} />
+          {!isEditing && course.videoUrl && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-all duration-500">
+              <button 
+                onClick={() => setIsPreviewOpen(true)}
+                className="size-24 rounded-full bg-primary text-black flex items-center justify-center shadow-2xl transform scale-50 group-hover:scale-100 transition-all duration-500 pointer-events-auto"
+              >
+                <span className="material-symbols-outlined text-5xl font-black">play_arrow</span>
+              </button>
+              <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-6 py-2 rounded-full border border-white/10">
+                <p className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Preview Course Video</p>
+              </div>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent flex items-end p-8 md:p-16 pointer-events-none">
             <div className="space-y-4 md:space-y-6 w-full">
               {isEditing ? (
                 <div className="space-y-4 bg-black/60 p-6 md:p-10 rounded-[32px] md:rounded-[48px] backdrop-blur-md border border-neon-border">
                   <input 
                     type="text"
-                    value={editedCourse.title}
+                    value={editedCourse.title || ''}
                     onChange={(e) => setEditedCourse({...editedCourse, title: e.target.value})}
                     className="w-full bg-white/5 border border-neon-border rounded-2xl px-6 py-4 text-white font-black text-2xl md:text-5xl focus:ring-2 focus:ring-primary outline-none font-display tracking-tighter"
                     placeholder="Course Title"
@@ -225,7 +354,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
                   <div className="flex gap-2">
                     <input 
                       type="text"
-                      value={editedCourse.imageUrl}
+                      value={editedCourse.imageUrl || ''}
                       onChange={(e) => setEditedCourse({...editedCourse, imageUrl: e.target.value})}
                       className="flex-1 bg-white/5 border border-neon-border rounded-2xl px-6 py-3 text-white text-xs focus:ring-2 focus:ring-primary outline-none font-medium"
                       placeholder="Image URL"
@@ -246,6 +375,40 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
                       accept="image/*"
                       className="hidden"
                     />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest ml-2">Category</p>
+                      <select 
+                        value={editedCourse.category}
+                        onChange={(e) => setEditedCourse({...editedCourse, category: e.target.value as Category})}
+                        className="w-full bg-white/5 border border-neon-border rounded-2xl px-6 py-3 text-white text-xs focus:ring-2 focus:ring-primary outline-none font-medium appearance-none"
+                      >
+                        {Object.values(Category).map(cat => (
+                          <option key={cat} value={cat} className="bg-zinc-900 text-white">{cat}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest ml-2">Instructor</p>
+                      <input 
+                        type="text"
+                        value={editedCourse.instructor || ''}
+                        onChange={(e) => setEditedCourse({...editedCourse, instructor: e.target.value})}
+                        className="w-full bg-white/5 border border-neon-border rounded-2xl px-6 py-3 text-white text-xs focus:ring-2 focus:ring-primary outline-none font-medium"
+                        placeholder="Instructor Name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest ml-2">Video URL</p>
+                      <input 
+                        type="text"
+                        value={editedCourse.videoUrl || ''}
+                        onChange={(e) => setEditedCourse({...editedCourse, videoUrl: e.target.value})}
+                        className="w-full bg-white/5 border border-neon-border rounded-2xl px-6 py-3 text-white text-xs focus:ring-2 focus:ring-primary outline-none font-medium"
+                        placeholder="Video URL (YouTube/Vimeo)"
+                      />
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -272,8 +435,8 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
               {isEditing && stat.editKey ? (
                 <input 
                   type={stat.type || 'text'}
-                  value={(editedCourse as any)[stat.editKey]}
-                  onChange={(e) => setEditedCourse({...editedCourse, [stat.editKey as string]: stat.type === 'number' ? parseFloat(e.target.value) : e.target.value})}
+                  value={(editedCourse as any)[stat.editKey] || (stat.type === 'number' ? 0 : '')}
+                  onChange={(e) => setEditedCourse({...editedCourse, [stat.editKey as string]: stat.type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value})}
                   className="w-full bg-background-main border border-neon-border rounded-xl px-4 py-2 text-center font-black text-sm md:text-base focus:ring-2 focus:ring-primary outline-none text-white"
                 />
               ) : (
@@ -303,7 +466,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
           
           {isEditing ? (
             <textarea 
-              value={editedCourse.description}
+              value={editedCourse.description || ''}
               onChange={(e) => setEditedCourse({...editedCourse, description: e.target.value})}
               className="w-full bg-background-main border border-neon-border rounded-[32px] p-8 text-base font-medium min-h-[300px] focus:ring-2 focus:ring-primary outline-none leading-relaxed text-white"
               placeholder="Enter course description..."
@@ -325,6 +488,167 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
             </div>
           )}
         </div>
+
+        {/* Curriculum Management Section (Admin Only) */}
+        {isEditing && (
+          <div className="bg-card p-10 md:p-16 rounded-[48px] md:rounded-[64px] shadow-sm space-y-10 border border-neon-border">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-8">
+              <div className="flex items-center gap-4">
+                <span className="material-symbols-outlined text-primary text-3xl font-black">list_alt</span>
+                <h2 className="text-3xl md:text-4xl font-black tracking-tighter font-display text-white">Curriculum Management</h2>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <button 
+                  onClick={() => lessonImportRef.current?.click()}
+                  className="px-6 py-3 bg-white/5 border border-neon-border text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">upload</span>
+                  Import JSON
+                </button>
+                <input 
+                  type="file"
+                  ref={lessonImportRef}
+                  onChange={handleLessonFileImport}
+                  accept=".json"
+                  className="hidden"
+                />
+                <button 
+                  onClick={() => {
+                    const input = prompt("Enter lesson titles (one per line):");
+                    if (!input) return;
+                    
+                    const titles = input.split('\n').filter(t => t.trim());
+                    const newLessons = titles.map(title => ({
+                      id: `lesson-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                      title: title.trim(),
+                      duration: "10:00",
+                      videoUrl: editedCourse.videoUrl || ""
+                    }));
+                    
+                    setEditedCourse({
+                      ...editedCourse,
+                      lessons: [...(editedCourse.lessons || []), ...newLessons]
+                    });
+                  }}
+                  className="px-6 py-3 bg-white/5 border border-neon-border text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">playlist_add</span>
+                  Bulk Add
+                </button>
+                <button 
+                  onClick={() => {
+                    const newLesson = {
+                      id: `lesson-${Date.now()}`,
+                      title: "New Lesson",
+                      duration: "10:00",
+                      videoUrl: editedCourse.videoUrl
+                    };
+                    setEditedCourse({
+                      ...editedCourse,
+                      lessons: [...(editedCourse.lessons || []), newLesson]
+                    });
+                  }}
+                  className="px-8 py-4 bg-primary text-black text-xs font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-xl"
+                >
+                  Add Lesson
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 bg-background-main rounded-3xl border border-neon-border space-y-4">
+              <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest ml-2">Quick Import from URL (AI Powered)</p>
+              <div className="flex gap-3">
+                <input 
+                  type="text"
+                  value={importUrl}
+                  onChange={(e) => setImportUrl(e.target.value)}
+                  placeholder="Paste YouTube/Vimeo/Article URL..."
+                  className="flex-1 bg-white/5 border border-neon-border rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary outline-none"
+                />
+                <button 
+                  onClick={handleImportFromUrl}
+                  disabled={isImporting || !importUrl.trim()}
+                  className="px-6 py-3 bg-primary text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
+                >
+                  <span className={`material-symbols-outlined text-sm ${isImporting ? 'animate-spin' : ''}`}>
+                    {isImporting ? 'sync' : 'auto_fix'}
+                  </span>
+                  {isImporting ? 'Importing...' : 'Import'}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {(editedCourse.lessons || []).map((lesson, idx) => (
+                <div key={lesson.id} className="p-6 bg-background-main rounded-3xl border border-neon-border space-y-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black">
+                        {idx + 1}
+                      </div>
+                      <input 
+                        type="text"
+                        value={lesson.title || ''}
+                        onChange={(e) => {
+                          const newLessons = [...(editedCourse.lessons || [])];
+                          newLessons[idx] = { ...lesson, title: e.target.value };
+                          setEditedCourse({ ...editedCourse, lessons: newLessons });
+                        }}
+                        className="flex-1 bg-white/5 border border-neon-border rounded-xl px-4 py-2 text-white font-bold text-sm focus:ring-2 focus:ring-primary outline-none"
+                        placeholder="Lesson Title"
+                      />
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const newLessons = (editedCourse.lessons || []).filter((_, i) => i !== idx);
+                        setEditedCourse({ ...editedCourse, lessons: newLessons });
+                      }}
+                      className="size-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
+                    >
+                      <span className="material-symbols-outlined text-xl">delete</span>
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-14">
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest ml-2">Duration</p>
+                      <input 
+                        type="text"
+                        value={lesson.duration || ''}
+                        onChange={(e) => {
+                          const newLessons = [...(editedCourse.lessons || [])];
+                          newLessons[idx] = { ...lesson, duration: e.target.value };
+                          setEditedCourse({ ...editedCourse, lessons: newLessons });
+                        }}
+                        className="w-full bg-white/5 border border-neon-border rounded-xl px-4 py-2 text-white text-xs focus:ring-2 focus:ring-primary outline-none"
+                        placeholder="e.g. 10:00"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest ml-2">Lesson Video URL</p>
+                      <input 
+                        type="text"
+                        value={lesson.videoUrl || ''}
+                        onChange={(e) => {
+                          const newLessons = [...(editedCourse.lessons || [])];
+                          newLessons[idx] = { ...lesson, videoUrl: e.target.value };
+                          setEditedCourse({ ...editedCourse, lessons: newLessons });
+                        }}
+                        className="w-full bg-white/5 border border-neon-border rounded-xl px-4 py-2 text-white text-xs focus:ring-2 focus:ring-primary outline-none"
+                        placeholder="Video URL (YouTube/Vimeo/Direct)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {(editedCourse.lessons || []).length === 0 && (
+                <div className="text-center py-12 border-2 border-dashed border-neon-border rounded-[32px] space-y-4">
+                  <span className="material-symbols-outlined text-4xl text-zinc-800">playlist_add</span>
+                  <p className="text-xs text-secondary-text font-bold">No lessons added yet. Click "Add Lesson" to start building the curriculum.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="w-full lg:w-[450px] flex flex-col gap-10">
@@ -407,7 +731,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
           </ul>
           <button 
             onClick={onEnroll}
-            className="w-full py-6 bg-primary text-black font-black rounded-[24px] shadow-2xl shadow-primary/20 hover:shadow-[0_0_20px_rgba(230,255,0,0.4)] active:scale-95 transition-all text-sm uppercase tracking-[0.2em]"
+            className="w-full py-6 bg-primary text-black font-black rounded-[24px] shadow-2xl shadow-primary/20 hover:shadow-[0_0_20px_var(--primary-glow)] active:scale-95 transition-all text-sm uppercase tracking-[0.2em]"
           >
             {isEnrolled ? "CONTINUE LEARNING" : "ENROLL NOW"}
           </button>
@@ -443,7 +767,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
                 <div key={rev.id} className="p-6 bg-background-main rounded-3xl border border-neon-border space-y-3">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <img src={rev.user_img} className="size-8 rounded-full" alt="" />
+                      <img src={rev.user_img || undefined} className="size-8 rounded-full" alt="" />
                       <div>
                         <h5 className="text-xs font-black text-white">{rev.user_name}</h5>
                         <p className="text-[8px] text-secondary-text uppercase font-bold">{new Date(rev.created_at).toLocaleDateString()}</p>
@@ -473,6 +797,27 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll, i
         onSuccess={handleReviewSuccess}
         courseId={course.id}
       />
+
+      {/* Notifications */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[500] px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border ${
+              notification.type === 'success' 
+                ? 'bg-green-500 text-white border-green-400' 
+                : 'bg-red-500 text-white border-red-400'
+            }`}
+          >
+            <span className="material-symbols-outlined">
+              {notification.type === 'success' ? 'check_circle' : 'error'}
+            </span>
+            <p className="text-sm font-black uppercase tracking-widest">{notification.message}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

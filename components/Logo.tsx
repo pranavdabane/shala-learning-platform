@@ -22,7 +22,7 @@ const Logo: React.FC<LogoProps> = ({ className = "", size = "md", isAdmin = fals
       <motion.div 
         whileHover={{ scale: 1.1, rotate: 5 }}
         whileTap={{ scale: 0.9 }}
-        className={`${currentSize.container} flex items-center justify-center rounded-xl text-black transition-all duration-300 ${isAdmin ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'bg-primary shadow-[0_0_15px_rgba(230,255,0,0.4)] group-hover:shadow-[0_0_25px_rgba(230,255,0,0.6)]'}`}
+        className={`${currentSize.container} flex items-center justify-center rounded-xl text-black transition-all duration-300 ${isAdmin ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'bg-primary shadow-[0_0_15px_var(--primary-glow)] group-hover:shadow-[0_0_25px_var(--primary-glow)]'}`}
       >
         <span className="material-symbols-outlined font-black" style={{ fontSize: 'inherit' }}>
           {isAdmin ? 'admin_panel_settings' : 'school'}
@@ -31,7 +31,7 @@ const Logo: React.FC<LogoProps> = ({ className = "", size = "md", isAdmin = fals
       
       <div className="flex flex-col leading-none">
         <div className="flex items-center gap-1">
-          <span className={`${currentSize.text} font-black tracking-tighter text-white uppercase`}>
+          <span className={`${currentSize.text} font-black tracking-tighter text-main-text uppercase`}>
             Online
           </span>
           {isAdmin && (

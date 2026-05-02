@@ -31,7 +31,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ order, onClose }) => {
 
         <div className="p-6 overflow-y-auto space-y-6 no-scrollbar text-left">
           <div className="flex gap-4 items-start">
-            <img src={order.imageUrl} className="size-16 rounded-2xl object-cover shadow-2xl border border-neon-border" alt="" referrerPolicy="no-referrer" />
+            <img src={order.imageUrl || undefined} className="size-16 rounded-2xl object-cover shadow-2xl border border-neon-border" alt="" referrerPolicy="no-referrer" />
             <div className="space-y-1">
               <p className="text-[10px] font-black uppercase text-primary tracking-[0.3em]">{order.category}</p>
               <h3 className="text-lg font-black font-display leading-tight">{order.title}</h3>

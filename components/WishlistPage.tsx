@@ -40,7 +40,7 @@ const WishlistPage: React.FC<WishlistPageProps> = ({ wishlistCourses, onSelectCo
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-40 text-center space-y-8 bg-card rounded-[48px] border border-neon-border shadow-xl">
-          <div className="size-28 rounded-3xl bg-background-main flex items-center justify-center text-secondary-text border border-neon-border shadow-[0_0_15px_rgba(230,255,0,0.1)]">
+          <div className="size-28 rounded-3xl bg-background-main flex items-center justify-center text-secondary-text border border-neon-border shadow-[0_0_15px_var(--primary-glow)]">
             <span className="material-symbols-outlined text-6xl text-primary/40">favorite</span>
           </div>
           <div className="space-y-2">
@@ -49,7 +49,7 @@ const WishlistPage: React.FC<WishlistPageProps> = ({ wishlistCourses, onSelectCo
           </div>
           <button 
             onClick={onBrowse}
-            className="px-10 py-5 bg-primary text-black font-bold rounded-2xl shadow-[0_0_20px_rgba(230,255,0,0.4)] hover:scale-105 transition-all uppercase tracking-widest text-sm"
+            className="px-10 py-5 bg-primary text-black font-bold rounded-2xl shadow-[0_0_20px_var(--primary-glow)] hover:scale-105 transition-all uppercase tracking-widest text-sm"
           >
             EXPLORE CATALOG
           </button>

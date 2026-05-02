@@ -90,7 +90,7 @@ const CartPage: React.FC<CartPageProps> = ({
                 {cartItems.map((item) => (
                   <div key={item.id} className="group bg-card p-8 rounded-[48px] border border-neon-border flex flex-col sm:flex-row gap-10 hover:shadow-[0_0_25px_rgba(230,255,0,0.35)] transition-all duration-700 hover:-translate-y-1">
                     <div className="w-full sm:w-64 h-40 rounded-[32px] overflow-hidden cursor-pointer shrink-0" onClick={() => onSelectCourse(item)}>
-                      <img src={item.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="" referrerPolicy="no-referrer" />
+                      <img src={item.imageUrl || undefined} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="" referrerPolicy="no-referrer" />
                     </div>
                     <div className="flex-1 flex flex-col justify-between py-2 text-left">
                       <div className="flex justify-between items-start gap-6">
@@ -169,7 +169,7 @@ const CartPage: React.FC<CartPageProps> = ({
                 {wishlistCourses.map((course) => (
                   <div key={course.id} className="group bg-card p-8 rounded-[48px] border border-neon-border flex flex-col gap-8 hover:shadow-[0_0_25px_rgba(230,255,0,0.35)] transition-all duration-700 text-left hover:-translate-y-1">
                     <div className="relative h-56 rounded-[32px] overflow-hidden cursor-pointer" onClick={() => onSelectCourse(course)}>
-                      <img src={course.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="" referrerPolicy="no-referrer" />
+                      <img src={course.imageUrl || undefined} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="" referrerPolicy="no-referrer" />
                       <div className="absolute bottom-6 right-6 bg-black/80 backdrop-blur-md text-primary text-base font-black px-6 py-3 rounded-2xl shadow-2xl border border-neon-border">
                         ${course.price}
                       </div>
@@ -200,7 +200,7 @@ const CartPage: React.FC<CartPageProps> = ({
               purchaseHistory.map((order) => (
                 <div key={order.id} className="bg-card p-8 rounded-[48px] border border-neon-border space-y-8 shadow-sm hover:shadow-[0_0_25px_rgba(230,255,0,0.35)] transition-all duration-700 hover:-translate-y-1">
                   <div className="flex gap-6">
-                    <img src={order.imageUrl} className="size-24 rounded-[24px] object-cover shadow-xl" alt="" referrerPolicy="no-referrer" />
+                    <img src={order.imageUrl || undefined} className="size-24 rounded-[24px] object-cover shadow-xl" alt="" referrerPolicy="no-referrer" />
                     <div className="flex-1 min-w-0 space-y-2">
                       <h4 className="font-black text-lg md:text-xl line-clamp-2 leading-tight font-display text-white">{order.title}</h4>
                       <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">ID: #{order.orderId || '72941'}</p>

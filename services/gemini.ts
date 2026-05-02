@@ -105,6 +105,75 @@ export async function getSignUpMotivation(course: Course) {
   return response.text;
 }
 
+export async function getRelatedVideos(courseTitle: string) {
+  const ai = getGeminiClient();
+  const prompt = `Find 3 high-quality educational YouTube videos related to the course title: "${courseTitle}".
+  Return the results as a JSON array of objects, each with "title" and "url" properties.
+  Ensure the URLs are valid YouTube watch links (e.g., https://www.youtube.com/watch?v=...).`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: prompt,
+    config: {
+      tools: [{ googleSearch: {} }],
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            url: { type: Type.STRING },
+          },
+          required: ["title", "url"],
+        },
+      },
+    },
+  });
+
+  try {
+    return JSON.parse(response.text);
+  } catch (e) {
+    console.error("Failed to parse related videos JSON:", e);
+    return [];
+  }
+}
+
+export async function importLessonFromUrl(url: string) {
+  const ai = getGeminiClient();
+  const prompt = `Extract lesson information from the following URL: ${url}.
+  If it's a video link (YouTube, Vimeo, etc.), try to find the video title and an estimated duration.
+  If it's a general article or course page, summarize it as a lesson title.
+  Return the results as a JSON object with "title", "duration", and "videoUrl" properties.
+  "duration" should be a string like "12:45".
+  "videoUrl" should be the same URL provided.`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: prompt,
+    config: {
+      tools: [{ googleSearch: {} }],
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING },
+          duration: { type: Type.STRING },
+          videoUrl: { type: Type.STRING },
+        },
+        required: ["title", "duration", "videoUrl"],
+      },
+    },
+  });
+
+  try {
+    return JSON.parse(response.text);
+  } catch (e) {
+    console.error("Failed to parse imported lesson JSON:", e);
+    return null;
+  }
+}
+
 export async function chatWithTutor(course: Course, message: string, history: any[]) {
   const ai = getGeminiClient();
   const chat = ai.chats.create({

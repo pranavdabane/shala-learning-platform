@@ -5,9 +5,11 @@ import ProfileDropdown from './ProfileDropdown';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
+  searchQuery: string;
   onNavigate: (view: any) => void;
   onAuth: (mode: 'login' | 'signup') => void;
   onLogout: () => void;
+  onUpdateAvatar?: (newAvatarUrl: string) => void;
   onToggleMobileMenu: () => void;
   currentView: string;
   cartCount: number;
@@ -17,15 +19,15 @@ interface HeaderProps {
   isAdmin?: boolean;
   user?: { name: string; email: string; avatarUrl?: string | null } | null;
   isMobileMenuOpen: boolean;
-  isDarkMode: boolean;
-  toggleDarkMode: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
   onSearch, 
+  searchQuery,
   onNavigate, 
   onAuth,
   onLogout,
+  onUpdateAvatar,
   onToggleMobileMenu,
   currentView, 
   cartCount, 
@@ -34,9 +36,7 @@ const Header: React.FC<HeaderProps> = ({
   isLoggedIn,
   isAdmin,
   user,
-  isMobileMenuOpen,
-  isDarkMode,
-  toggleDarkMode
+  isMobileMenuOpen
 }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -125,16 +125,18 @@ const Header: React.FC<HeaderProps> = ({
       </div>
 
         <div className="flex flex-1 justify-end gap-2 lg:gap-6 items-center">
-          <label className="flex flex-col min-w-0 flex-1 sm:min-w-48 max-w-72 h-11 lg:h-12 relative">
+          <div className="flex flex-col min-w-0 sm:min-w-48 max-w-72 w-full h-11 lg:h-12 relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 lg:pl-4 pointer-events-none text-secondary-text">
               <span className="material-symbols-outlined text-xl lg:text-2xl">search</span>
             </div>
             <input 
+              id="global-search-input"
               className="form-input block w-full pl-10 lg:pl-12 pr-4 lg:pr-6 rounded-full border border-neon-border bg-card text-sm lg:text-base focus:ring-2 focus:ring-primary placeholder:text-secondary-text text-white transition-all h-full" 
               placeholder="Search tracks..." 
+              value={searchQuery}
               onChange={(e) => onSearch(e.target.value)}
             />
-          </label>
+          </div>
           
           <motion.button 
             whileHover={{ scale: 1.05 }}
@@ -173,7 +175,7 @@ const Header: React.FC<HeaderProps> = ({
                 <img 
                   alt="Profile" 
                   className="h-full w-full object-cover" 
-                  src={avatarUrl} 
+                  src={avatarUrl || undefined} 
                 />
               </div>
               <ProfileDropdown 
@@ -182,18 +184,21 @@ const Header: React.FC<HeaderProps> = ({
                 enrolledCount={enrolledCount}
                 onNavigate={onNavigate}
                 onLogout={onLogout}
+                onUpdateAvatar={onUpdateAvatar}
                 user={user}
                 isAdmin={isAdmin}
               />
             </div>
           ) : (
-            <button 
-              onClick={() => onAuth('signup')}
-              className="px-3 sm:px-5 py-2 text-xs lg:text-sm font-bold bg-[#E6FF00] text-black rounded-xl hover:shadow-[0_0_20px_rgba(230,255,0,0.4)] hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
-            >
-              <span className="sm:hidden">Join</span>
-              <span className="hidden sm:inline">Join Now</span>
-            </button>
+            <div className="flex items-center gap-2 lg:gap-4">
+              <button 
+                onClick={() => onAuth('signup')}
+                className="px-3 sm:px-5 py-2 text-xs lg:text-sm font-bold bg-[#E6FF00] text-black rounded-xl hover:shadow-[0_0_20px_rgba(230,255,0,0.4)] hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+              >
+                <span className="sm:hidden">Join</span>
+                <span className="hidden sm:inline">Join Now</span>
+              </button>
+            </div>
           )}
         </div>
       </div>

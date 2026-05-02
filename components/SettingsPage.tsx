@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SettingsPageProps {
   user: { name: string; email: string; avatarUrl?: string | null } | null;
@@ -55,6 +56,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
   const [profileIndexing, setProfileIndexing] = useState(() => localStorage.getItem('lms_settings_profileIndexing') === 'true');
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+    setNotification({ message, type });
+  };
 
   // Persistence Effects
   useEffect(() => {
@@ -180,7 +186,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
       window.location.href = '/';
     } catch (err) {
       console.error('Error deleting account:', err);
-      alert('Failed to delete account. Please try again later.');
+      showNotification('Failed to delete account. Please try again later.', 'error');
     }
   };
 
@@ -188,9 +194,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
     <section className="bg-card p-8 rounded-[40px] border border-neon-border shadow-sm space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
       <div className="flex items-center gap-6">
         <div className="relative group">
-          <div className="size-24 rounded-full border-4 border-primary overflow-hidden shadow-[0_0_20px_rgba(230,255,0,0.3)] bg-background-main">
+          <div className="size-24 rounded-full border-4 border-primary overflow-hidden shadow-[0_0_20px_var(--primary-glow)] bg-background-main">
             <img 
-              src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=e6ff00&color=000000&bold=true`} 
+              src={(avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=e6ff00&color=000000&bold=true`) || undefined} 
               alt="Avatar" 
               className="w-full h-full object-cover" 
             />
@@ -270,8 +276,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
   const renderAppearance = () => (
     <section className="bg-card p-8 rounded-[40px] border border-neon-border shadow-sm space-y-8 animate-in fade-in slide-in-from-right-4 duration-300 text-left">
       <div className="space-y-1">
-        <h3 className="text-xl font-black text-white">Interface Scale</h3>
-        <p className="text-xs text-secondary-text">Adjust the platform's visual density.</p>
+        <h3 className="text-xl font-black text-main-text">Interface Appearance</h3>
+        <p className="text-xs text-secondary-text">Adjust the platform's visual theme and density.</p>
       </div>
 
       <div className="space-y-6">
@@ -444,7 +450,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
                     ? 'bg-green-500 text-white' 
                     : passwordStatus === 'error'
                     ? 'bg-red-500 text-white'
-                    : 'bg-primary text-black hover:shadow-[0_0_20px_rgba(230,255,0,0.4)]'
+                    : 'bg-primary text-black hover:shadow-[0_0_20px_var(--primary-glow)]'
                 }`}
               >
                 {passwordStatus === 'updating' ? 'Updating...' : 
@@ -572,7 +578,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
                 ? 'bg-green-500 text-white' 
                 : saveStatus === 'error'
                 ? 'bg-red-500 text-white'
-                : 'bg-primary text-black hover:shadow-[0_0_20px_rgba(230,255,0,0.4)]'
+                : 'bg-primary text-black hover:shadow-[0_0_20px_var(--primary-glow)]'
             }`}
           >
             {saveStatus === 'saving' ? (
@@ -637,7 +643,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
              <p className="text-[10px] font-black uppercase text-primary tracking-widest mb-2">Pro Membership</p>
              <h4 className="text-lg font-black leading-tight mb-4">Unlimited AI Tutor & Premium Certifications.</h4>
              <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-primary w-[92%] shadow-[0_0_10px_rgba(242,242,13,0.5)]"></div>
+                <div className="h-full bg-primary w-[92%] shadow-[0_0_10px_var(--primary-glow)]"></div>
              </div>
              <p className="text-[9px] font-bold text-secondary-text mt-2 uppercase">Usage: 92% of Monthly Quota</p>
           </div>
@@ -651,6 +657,38 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onSave }) => 
           {activeSection === 'Privacy' && renderPrivacy()}
         </div>
       </div>
+
+      {/* Custom Notification */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-4 px-8 py-4 bg-card rounded-3xl border border-neon-border shadow-2xl min-w-[320px]"
+          >
+            <div className={`size-10 rounded-2xl flex items-center justify-center ${notification.type === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+              <span className="material-symbols-outlined text-2xl">
+                {notification.type === 'success' ? 'check_circle' : 'error'}
+              </span>
+            </div>
+            <p className="text-sm font-black text-white">{notification.message}</p>
+            <button 
+              onClick={() => setNotification(null)}
+              className="ml-auto text-secondary-text hover:text-white transition-colors"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+            <motion.div 
+              initial={{ width: "100%" }}
+              animate={{ width: "0%" }}
+              transition={{ duration: 3, ease: "linear" }}
+              onAnimationComplete={() => setNotification(null)}
+              className={`absolute bottom-0 left-0 h-1 rounded-full ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

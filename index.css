@@ -6,23 +6,50 @@
   --font-display: "Outfit", sans-serif;
   --font-marathi: "Noto Sans Marathi", sans-serif;
   
-  --color-primary: #E6FF00;
-  --color-background-main: #0A0A0A;
-  --color-background-secondary: #111111;
-  --color-card: #1A1A1A;
-  --color-neon-border: rgba(230, 255, 0, 0.25);
-  --color-secondary-text: #A1A1AA;
+  --color-primary: var(--primary);
+  --color-primary-glow: var(--primary-glow);
+  --color-primary-border: var(--primary-border-color);
+  --color-background-main: var(--background-main);
+  --color-background-secondary: var(--background-secondary);
+  --color-card: var(--card);
+  --color-neon-border: var(--neon-border);
+  --color-secondary-text: var(--secondary-text);
+  --color-main-text: var(--main-text);
+}
+
+:root {
+  --primary: #ec4899;
+  --primary-glow: rgba(236, 72, 153, 0.35);
+  --primary-border-color: rgba(236, 72, 153, 0.2);
+  --background-main: #f8fafc;
+  --background-secondary: #f1f5f9;
+  --card: #ffffff;
+  --neon-border: rgba(0, 0, 0, 0.08);
+  --secondary-text: #64748b;
+  --main-text: #0f172a;
+}
+
+.dark {
+  --primary: #E6FF00;
+  --primary-glow: rgba(230, 255, 0, 0.35);
+  --primary-border-color: rgba(230, 255, 0, 0.25);
+  --background-main: #0A0A0A;
+  --background-secondary: #111111;
+  --card: #1A1A1A;
+  --neon-border: rgba(230, 255, 0, 0.25);
+  --secondary-text: #A1A1AA;
+  --main-text: #ffffff;
 }
 
 @layer base {
   body {
-    @apply bg-background-main text-white antialiased;
+    @apply bg-background-main text-main-text antialiased;
     font-family: var(--font-sans);
-    background-image: radial-gradient(circle at 50% 0%, rgba(230, 255, 0, 0.05) 0%, transparent 50%);
+    background-image: radial-gradient(circle at 50% 0%, var(--primary-border-color) 0%, transparent 50%);
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tighter text-white font-black;
+    @apply font-display tracking-tighter text-main-text font-black;
   }
 }
 
@@ -31,10 +58,10 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
   .neon-glow {
-    box-shadow: 0 0 25px rgba(230, 255, 0, 0.35);
+    box-shadow: 0 0 25px var(--primary-glow);
   }
   .neon-border {
-    border: 1px solid rgba(230, 255, 0, 0.2);
+    border: 1px solid var(--primary-border-color);
   }
 }
 

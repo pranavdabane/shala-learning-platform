@@ -7,27 +7,45 @@ interface ProfileDropdownProps {
   enrolledCount: number;
   onNavigate: (view: any) => void;
   onLogout: () => void;
+  onUpdateAvatar?: (newAvatarUrl: string) => void;
   user?: { name: string; email: string; avatarUrl?: string | null } | null;
   isAdmin?: boolean;
 }
 
-const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isOpen, onClose, enrolledCount, onNavigate, onLogout, user, isAdmin }) => {
+const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isOpen, onClose, enrolledCount, onNavigate, onLogout, onUpdateAvatar, user, isAdmin }) => {
   if (!isOpen) return null;
 
   const displayName = user?.name || "Guest User";
   const displayEmail = user?.email || "not-logged-in@platform.edu";
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onUpdateAvatar) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onUpdateAvatar(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <>
       <div className="fixed inset-0 z-[60]" onClick={onClose}></div>
       <div className="absolute right-0 mt-2 w-72 bg-card rounded-3xl shadow-2xl border border-neon-border p-6 z-[70] animate-in fade-in zoom-in-95 duration-200">
         <div className="flex flex-col items-center text-center space-y-4 pb-6 border-b border-neon-border">
-          <div className={`size-20 rounded-full border-4 overflow-hidden shadow-lg ${isAdmin ? 'border-red-500' : 'border-primary shadow-[0_0_15px_rgba(230,255,0,0.3)]'}`}>
-            <img 
-              alt="Profile" 
-              className="h-full w-full object-cover" 
-              src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=${isAdmin ? 'ff0000' : 'e6ff00'}&color=${isAdmin ? 'ffffff' : '000000'}&bold=true`} 
-            />
+          <div className="relative group/avatar">
+            <div className={`size-20 rounded-full border-4 overflow-hidden shadow-lg ${isAdmin ? 'border-red-500' : 'border-primary shadow-[0_0_15px_var(--primary-glow)]'}`}>
+              <img 
+                alt="Profile" 
+                className="h-full w-full object-cover" 
+                src={(user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=${isAdmin ? 'ff0000' : 'e6ff00'}&color=${isAdmin ? 'ffffff' : '000000'}&bold=true`) || undefined} 
+              />
+            </div>
+            <label className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer">
+              <span className="material-symbols-outlined text-white text-2xl">photo_camera</span>
+              <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
+            </label>
           </div>
           <div>
             <div className="flex items-center justify-center gap-1">
